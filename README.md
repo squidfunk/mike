@@ -32,6 +32,14 @@ pip install git+https://github.com/squidfunk/mike.git
 Please see mike's documentation for usage:
 https://github.com/jimporter/mike?tab=readme-ov-file#mike
 
+## Acknowledgements
+
+[Jim Porter](https://github.com/jimporter/) has created and maintained mike for
+years, and we are grateful for his work on this project, enabling users of
+Material for MkDocs to deploy versioned documentation to GitHub Pages. This
+fork is based on his work, and we will continue to maintain it until Zensical
+provides native support for versioning.
+
 ## License
 
 This project is licensed under the [BSD 3-clause license](LICENSE).
