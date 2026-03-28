@@ -19,7 +19,7 @@ the same. Limitations:
 
 1. No theme support besides Zensical's default theme.
 2. Installation must happen from GitHub – this fork won't be published on PyPI.
-3. This fork is based on mike 2.2.0 - no further updates are planned.
+3. This fork is based on mike 2.2.0 - we only intend to provide bug fixes.
 
 ## Installation
 
