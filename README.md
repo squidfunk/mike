@@ -1,5 +1,9 @@
 # mike (for Zensical)
 
+> [!NOTE]
+>
+> Don't know what Zensical is? Read the [announcement blog post](https://squidfunk.github.io/mkdocs-material/blog/2025/11/05/zensical/).
+
 This fork makes [mike](https://github.com/jimporter/mike) compatible with
 [Zensical](https://zensical.org), a modern static site generator built by the
 Material for MkDocs team. Please note that this is part of our effort to
