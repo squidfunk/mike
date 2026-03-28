@@ -10,7 +10,6 @@ from . import git_utils
 from . import jsonpath
 from . import mkdocs_utils
 from .app_version import version as app_version
-from .mkdocs_plugin import MikePlugin
 
 description = """
 mike is a utility to make it easy to deploy multiple versions of your
@@ -145,27 +144,36 @@ def load_mkdocs_config(args, strict=False):
 
     try:
         cfg = mkdocs_utils.load_config(args.config_file)
-        plugin = cfg['plugins'].get('mike') or MikePlugin.default()
-
+        plugin = cfg['plugins'].get('mike') or get_default_config()
         maybe_set(args, cfg, 'branch', 'remote_branch')
         maybe_set(args, cfg, 'remote', 'remote_name')
-        maybe_set(args, plugin.config, 'alias_type')
-        maybe_set(args, plugin.config, 'template', 'redirect_template')
-        maybe_set(args, plugin.config, 'deploy_prefix')
+        maybe_set(args, plugin["config"], 'alias_type')
+        maybe_set(args, plugin["config"], 'template', 'redirect_template')
+        maybe_set(args, plugin["config"], 'deploy_prefix')
         return cfg
     except FileNotFoundError as e:
         if strict:
             raise
 
-        plugin = MikePlugin.default()
-        maybe_set(args, plugin.config, 'alias_type')
-        maybe_set(args, plugin.config, 'template', 'redirect_template')
-        maybe_set(args, plugin.config, 'deploy_prefix')
+        plugin = get_default_config()
+        maybe_set(args, plugin["config"], 'alias_type')
+        maybe_set(args, plugin["config"], 'template', 'redirect_template')
+        maybe_set(args, plugin["config"], 'deploy_prefix')
         if args.branch is None or args.remote is None:
             raise FileNotFoundError(
                 '{}; pass --config-file or set --remote/--branch explicitly'
                 .format(str(e))
             )
+
+
+def get_default_config():
+    return {
+        "config": {
+            'alias_type': 'symlink',
+            'redirect_template': None,
+            'deploy_prefix': '',
+        }
+    }
 
 
 def check_remote_status(args, strict=False):
