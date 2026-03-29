@@ -40,7 +40,7 @@ class TestRetitle(RetitleTestCase):
         self.stage = stage_dir('retitle')
         git_init()
         copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_retitle(self):
@@ -61,7 +61,7 @@ class TestRetitle(RetitleTestCase):
         with pushd('sub'):
             assertPopen(['mike', 'retitle', '1.0', '1.0.1'], returncode=1)
             assertPopen(['mike', 'retitle', '1.0', '1.0.1', '-F',
-                         '../mkdocs.yml'])
+                         '../zensical.toml'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_retitle()
 
@@ -191,7 +191,7 @@ class TestRetitleOtherRemote(RetitleTestCase):
         self.stage_origin = stage_dir('retitle_remote')
         git_init()
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
         check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
                            'ignore'])

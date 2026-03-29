@@ -29,16 +29,11 @@ class AliasTestCase(unittest.TestCase):
         files = {'versions.json'}
         for v in expected_versions:
             v_str = str(v.version)
-            files |= {v_str, v_str + '/index.html',
-                      v_str + '/css/version-select.css',
-                      v_str + '/js/version-select.js'}
+            files |= {v_str, v_str + '/index.html'}
             for a in v.aliases:
                 files.add(a)
                 if alias_type != AliasType.symlink:
                     files |= {a + '/index.html'}
-                if alias_type == AliasType.copy:
-                    files |= {a + '/css/version-select.css',
-                              a + '/js/version-select.js'}
         assertDirectory(directory, files, allow_extra=True)
 
         with open(os.path.join(directory, 'versions.json')) as f:
@@ -51,7 +46,7 @@ class TestAlias(AliasTestCase):
         self.stage = stage_dir('alias')
         git_init()
         copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_alias(self):
@@ -109,7 +104,7 @@ class TestAlias(AliasTestCase):
         with pushd('sub'):
             assertPopen(['mike', 'alias', '1.0', 'latest'], returncode=1)
             assertPopen(['mike', 'alias', '1.0', 'latest', '-F',
-                         '../mkdocs.yml'])
+                         '../zensical.toml'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_alias()
 
@@ -236,7 +231,7 @@ class TestAliasOtherRemote(AliasTestCase):
         self.stage_origin = stage_dir('alias_remote')
         git_init()
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
         check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
                            'ignore'])
@@ -287,7 +282,7 @@ class TestAliasNoDirectoryUrls(AliasTestCase):
         self.stage = stage_dir('alias_no_directory_urls')
         git_init()
         copytree(os.path.join(test_data_dir, 'no_directory_urls'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_alias_redirect(self):

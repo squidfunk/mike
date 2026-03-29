@@ -15,7 +15,7 @@ class TestServe(unittest.TestCase):
         self.stage = stage_dir('serve')
         git_init()
         copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
         with git_utils.Commit('gh-pages', 'add file') as commit:
@@ -49,7 +49,7 @@ class TestServe(unittest.TestCase):
     def test_from_subdir(self):
         os.mkdir('sub')
         with pushd('sub'):
-            self._check_serve(['-F', '../mkdocs.yml'])
+            self._check_serve(['-F', '../zensical.toml'])
             self._check_serve(['-b', 'gh-pages', '-r', 'origin'])
 
     def test_local_empty(self):

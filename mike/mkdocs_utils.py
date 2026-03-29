@@ -26,7 +26,12 @@ def _open_config(config_file=None):
 
 def load_config(config_file=None, **kwargs):
     config_file = _open_config(config_file)
-    return parse_config(config_file)
+    cfg = parse_config(config_file)
+    # Zensical returns site_dir as a relative path; make it absolute so that
+    # commands work correctly when invoked from a subdirectory.
+    config_dir = os.path.dirname(os.path.abspath(config_file))
+    cfg['site_dir'] = os.path.join(config_dir, cfg['site_dir'])
+    return cfg
 
 @contextmanager
 def inject_plugin(config_file):

@@ -1,4 +1,3 @@
-import mkdocs.config
 import os
 import unittest
 from argparse import Namespace
@@ -16,26 +15,23 @@ class TestLoadMkdocsConfig(unittest.TestCase):
         return Namespace(**default)
 
     def test_config(self):
-        path = os.path.join(test_data_dir, 'basic_theme', 'mkdocs.yml')
+        path = os.path.join(test_data_dir, 'basic_theme', 'zensical.toml')
         args = self.make_args(config_file=path)
-        self.assertIsInstance(driver.load_mkdocs_config(args),
-                              mkdocs.config.Config)
+        self.assertIsNotNone(driver.load_mkdocs_config(args))
         self.assertFalse(hasattr(args, 'alias_type'))
         self.assertFalse(hasattr(args, 'template'))
         self.assertFalse(hasattr(args, 'deploy_prefix'))
 
         args = self.make_args(config_file=path, alias_type=None, template=None,
                               deploy_prefix=None)
-        self.assertIsInstance(driver.load_mkdocs_config(args),
-                              mkdocs.config.Config)
+        self.assertIsNotNone(driver.load_mkdocs_config(args))
         self.assertEqual(args.alias_type, 'symlink')
         self.assertEqual(args.template, None)
         self.assertEqual(args.deploy_prefix, '')
 
         args = self.make_args(config_file=path, alias_type='copy',
                               template='file.html', deploy_prefix='prefix')
-        self.assertIsInstance(driver.load_mkdocs_config(args),
-                              mkdocs.config.Config)
+        self.assertIsNotNone(driver.load_mkdocs_config(args))
         self.assertEqual(args.alias_type, 'copy')
         self.assertEqual(args.template, 'file.html')
         self.assertEqual(args.deploy_prefix, 'prefix')

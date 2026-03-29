@@ -25,16 +25,11 @@ class DeployTestCase(unittest.TestCase):
         files = {'versions.json'}
         for v in expected_versions:
             v_str = str(v.version)
-            files |= {v_str, v_str + '/index.html',
-                      v_str + '/css/version-select.css',
-                      v_str + '/js/version-select.js'}
+            files |= {v_str, v_str + '/index.html'}
             for a in v.aliases:
                 files.add(a)
                 if alias_type != AliasType.symlink:
                     files |= {a + '/index.html'}
-                if alias_type == AliasType.copy:
-                    files |= {a + '/css/version-select.css',
-                              a + '/js/version-select.js'}
         assertDirectory(directory, files, allow_extra=True)
 
         with open(os.path.join(directory, 'versions.json')) as f:
@@ -47,7 +42,7 @@ class TestDeploy(DeployTestCase):
         self.stage = stage_dir('deploy')
         git_init()
         copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_default(self):
@@ -142,7 +137,7 @@ class TestDeploy(DeployTestCase):
         os.mkdir('sub')
         with pushd('sub'):
             assertPopen(['mike', 'deploy', '1.0'], returncode=1)
-            assertPopen(['mike', 'deploy', '1.0', '-F', '../mkdocs.yml'])
+            assertPopen(['mike', 'deploy', '1.0', '-F', '../zensical.toml'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_deploy()
 
@@ -287,7 +282,7 @@ class TestDeployMkdocsYaml(DeployTestCase):
         self.stage = stage_dir('deploy_mkdocs_yaml')
         git_init()
         copytree(os.path.join(test_data_dir, 'mkdocs_yaml'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yaml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yaml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_default(self):
@@ -301,13 +296,13 @@ class TestDeployPlugin(DeployTestCase):
         self.stage = stage_dir('deploy_plugin')
         git_init()
         copytree(os.path.join(test_data_dir, 'mkdocs_plugin'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_default(self):
         assertPopen(['mike', 'deploy', '1.0'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(directory='prefix')
+        self._test_deploy()
 
 
 class TestDeployCustomSiteDir(DeployTestCase):
@@ -315,7 +310,7 @@ class TestDeployCustomSiteDir(DeployTestCase):
         self.stage = stage_dir('deploy_sitedir')
         git_init()
         copytree(os.path.join(test_data_dir, 'site_dir'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_default(self):
@@ -329,7 +324,7 @@ class TestDeployOtherRemote(DeployTestCase):
         self.stage_origin = stage_dir('deploy_remote')
         git_init()
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
         check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
                            'ignore'])
@@ -373,7 +368,7 @@ class TestDeployNoDirectoryUrls(unittest.TestCase):
         self.stage = stage_dir('deploy_no_directory_urls')
         git_init()
         copytree(os.path.join(test_data_dir, 'no_directory_urls'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_alias_redirect(self):

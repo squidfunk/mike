@@ -34,7 +34,7 @@ class TestSetDefault(SetDefaultTestCase):
         self.stage = stage_dir('set_default')
         git_init()
         copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_set_default(self):
@@ -61,7 +61,7 @@ class TestSetDefault(SetDefaultTestCase):
         os.mkdir('sub')
         with pushd('sub'):
             assertPopen(['mike', 'set-default', '1.0'], returncode=1)
-            assertPopen(['mike', 'set-default', '1.0', '-F', '../mkdocs.yml'])
+            assertPopen(['mike', 'set-default', '1.0', '-F', '../zensical.toml'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_default()
 
@@ -211,7 +211,7 @@ class TestSetDefaultOtherRemote(SetDefaultTestCase):
         self.stage_origin = stage_dir('set_default_remote')
         git_init()
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
         check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
                            'ignore'])

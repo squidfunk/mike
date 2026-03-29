@@ -11,7 +11,7 @@ class PropsTestCase(unittest.TestCase):
         self.stage = stage_dir(self.stage_dir)
         git_init()
         copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def _add_version(self, version='1.0', aliases=[], properties=None,
@@ -62,7 +62,7 @@ class TestGetProp(PropsTestCase):
         with pushd('sub'):
             assertPopen(['mike', 'props', '1.0', 'hidden'], returncode=1)
             assertOutput(self, ['mike', 'props', '1.0', 'hidden',
-                                '-F', '../mkdocs.yml'], 'true\n')
+                                '-F', '../zensical.toml'], 'true\n')
 
     def test_from_subdir_explicit_branch(self):
         self._add_version(properties={'hidden': True})
@@ -192,7 +192,7 @@ class TestSetProps(PropsTestCase):
             assertPopen(['mike', 'props', '1.0', '--set', 'hidden=true'],
                         returncode=1)
             assertPopen(['mike', 'props', '1.0', '--set', 'hidden=true',
-                         '-F', '../mkdocs.yml'])
+                         '-F', '../zensical.toml'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_set_props()
 
@@ -330,7 +330,7 @@ class TestSetPropsOtherRemote(PropsTestCase):
         self.stage_origin = stage_dir('set_props_remote')
         git_init()
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
         check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
                            'ignore'])

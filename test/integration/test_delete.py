@@ -33,7 +33,7 @@ class TestDelete(DeleteTestCase):
         self.stage = stage_dir('delete')
         git_init()
         copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_delete_versions(self):
@@ -56,7 +56,7 @@ class TestDelete(DeleteTestCase):
         os.mkdir('sub')
         with pushd('sub'):
             assertPopen(['mike', 'delete', '1.0'], returncode=1)
-            assertPopen(['mike', 'delete', '1.0', '-F', '../mkdocs.yml'])
+            assertPopen(['mike', 'delete', '1.0', '-F', '../zensical.toml'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_delete()
 
@@ -187,7 +187,7 @@ class TestDeleteOtherRemote(DeleteTestCase):
         self.stage_origin = stage_dir('delete_remote')
         git_init()
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
         check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
                            'ignore'])
