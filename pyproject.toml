@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools >= 61"]
-build-backend = "setuptools.backends.legacy:build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "mike"
@@ -39,14 +39,13 @@ mike = "mike.driver:main"
 [project.urls]
 Homepage = "https://github.com/jimporter/mike"
 
-[tool.setuptools.dynamic]
-version = {attr = "mike.app_version.version"}
+[tool.hatch.version]
+source = "code"
+path = "mike/app_version.py"
+expression = "version"
 
-[tool.setuptools.packages.find]
-exclude = ["test", "test.*"]
-
-[tool.setuptools.package-data]
-"mike" = ["templates/*.html", "themes/**/*.js", "themes/**/*.css"]
+[tool.hatch.build.targets.wheel]
+packages = ["mike"]
 
 [tool.coverage.run]
 source = ["mike"]
