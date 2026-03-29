@@ -8,12 +8,12 @@ from . import arguments
 from . import commands
 from . import git_utils
 from . import jsonpath
-from . import mkdocs_utils
+from . import utils
 from .app_version import version as app_version
 
 description = """
 mike is a utility to make it easy to deploy multiple versions of your
-MkDocs-powered docs to a Git branch, suitable for deploying to Github via
+Zensical-powered docs to a Git branch, suitable for deploying to Github via
 gh-pages. It's designed to produce one version of your docs at a time. That
 way, you can easily deploy a new version without touching any older versions of
 your docs.
@@ -89,7 +89,7 @@ def add_git_arguments(parser, *, commit=True, deploy_prefix=True):
         '--config-file',
         metavar='FILE',
         complete='file',
-        help='the MkDocs configuration file to use',
+        help='the Zensical configuration file to use',
     )
 
     git = parser.add_argument_group('git arguments')
@@ -174,13 +174,13 @@ def add_set_prop_arguments(parser, *, prefix=''):
     return prop_p
 
 
-def load_mkdocs_config(args, strict=False):
+def load_config(args, strict=False):
     def maybe_set(args, cfg, field, cfg_field=None):
         if getattr(args, field, object()) is None:
             setattr(args, field, cfg[cfg_field or field])
 
     try:
-        cfg = mkdocs_utils.load_config(args.config_file)
+        cfg = utils.load_config(args.config_file)
         plugin = cfg['plugins'].get('mike') or get_default_config()
         maybe_set(args, cfg, 'branch', 'remote_branch')
         maybe_set(args, cfg, 'remote', 'remote_name')
@@ -242,7 +242,7 @@ def handle_empty_commit():
 
 
 def deploy(parser, args):
-    cfg = load_mkdocs_config(args, strict=True)
+    cfg = load_config(args, strict=True)
     check_remote_status(args, strict=True)
     with handle_empty_commit():
         alias_type = commands.AliasType[args.alias_type]
@@ -261,15 +261,15 @@ def deploy(parser, args):
                 deploy_prefix=args.deploy_prefix,
                 set_props=args.set_props or [],
             ),
-            mkdocs_utils.inject_plugin(args.config_file) as config_file,
+            utils.inject_plugin(args.config_file) as config_file,
         ):
-            mkdocs_utils.build(config_file, args.version, quiet=args.quiet)
+            utils.build(config_file, args.version, quiet=args.quiet)
         if args.push:
             git_utils.push_branch(args.remote, args.branch)
 
 
 def delete(parser, args):
-    load_mkdocs_config(args)
+    load_config(args)
     check_remote_status(args, strict=True)
     commands.delete(
         args.identifiers,
@@ -284,7 +284,7 @@ def delete(parser, args):
 
 
 def alias(parser, args):
-    cfg = load_mkdocs_config(args)
+    cfg = load_config(args)
     check_remote_status(args, strict=True)
     with handle_empty_commit():
         alias_type = commands.AliasType[args.alias_type]
@@ -305,7 +305,7 @@ def alias(parser, args):
 
 
 def props(parser, args):
-    load_mkdocs_config(args)
+    load_config(args)
     check_remote_status(args, strict=args.set_props)
 
     if args.get_prop and args.set_props:
@@ -336,7 +336,7 @@ def props(parser, args):
 
 
 def retitle(parser, args):
-    load_mkdocs_config(args)
+    load_config(args)
     check_remote_status(args, strict=True)
     with handle_empty_commit():
         commands.retitle(
@@ -366,7 +366,7 @@ def list_versions(parser, args):
         else:
             print('{version}{aliases}'.format(version=version, aliases=aliases))
 
-    load_mkdocs_config(args)
+    load_config(args)
     check_remote_status(args)
     all_versions = commands.list_versions(args.branch, args.deploy_prefix)
 
@@ -388,7 +388,7 @@ def list_versions(parser, args):
 
 
 def set_default(parser, args):
-    load_mkdocs_config(args)
+    load_config(args)
     check_remote_status(args, strict=True)
     with handle_empty_commit():
         commands.set_default(
@@ -405,7 +405,7 @@ def set_default(parser, args):
 
 
 def serve(parser, args):
-    load_mkdocs_config(args)
+    load_config(args)
     check_remote_status(args)
     commands.serve(args.dev_addr, branch=args.branch)
 

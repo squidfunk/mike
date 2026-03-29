@@ -9,7 +9,10 @@ description = "Manage multiple versions of your Zensical-powered documentation"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {file = "LICENSE"}
 keywords = ["zensical", "multiple versions"]
-authors = [{name = "Jim Porter", email = "itsjimporter@gmail.com"}]
+authors = [
+    {name = "Jim Porter", email = "itsjimporter@gmail.com"},
+    {name = "Zensical", email = "contributors@zensical.org"}
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",

@@ -6,7 +6,7 @@ from enum import Enum
 from jinja2 import Template
 
 from . import git_utils
-from . import mkdocs_utils
+from . import utils
 from . import server
 from .app_version import version as app_version
 from .versions import Versions
@@ -81,13 +81,13 @@ def deploy(
 ):
     if message is None:
         message = (
-            'Deployed {rev} to {doc_version}{deploy_prefix} with MkDocs '
-            + '{mkdocs_version} and mike {mike_version}'
+            'Deployed {rev} to {doc_version}{deploy_prefix} with Zensical '
+            + '{zensical_version} and mike {mike_version}'
         ).format(
             rev=git_utils.get_latest_commit('HEAD', short=True),
             doc_version=version,
             deploy_prefix=_format_deploy_prefix(deploy_prefix),
-            mkdocs_version=mkdocs_utils.version(),
+            zensical_version=utils.version(),
             mike_version=app_version,
         )
 
