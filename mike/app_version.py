@@ -1,1 +1,1 @@
-version = '2.2.0+zensical-0.0.1'
+version = '2.2.0+zensical-0.1.0'
