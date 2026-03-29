@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["coverage", "flake8 >= 3.0", "flake8-quotes", "shtab"]
+dev = ["flake8 >= 3.0", "flake8-quotes", "shtab"]
 
 [project.scripts]
 mike = "mike.driver:main"
@@ -45,21 +45,3 @@ expression = "version"
 [tool.hatch.build.targets.wheel]
 packages = ["mike"]
 
-[tool.coverage.run]
-source = ["mike"]
-parallel = true
-branch = true
-
-[tool.coverage.paths]
-source = [
-    "mike/",
-    "/usr/local/lib/*/site-packages/mike/",
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "raise NotImplementedError",
-    "return NotImplemented",
-    "def __repr__",
-]

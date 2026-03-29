@@ -1,5 +1,7 @@
 # mike (for Zensical)
 
+[![Build Status](https://github.com/squidfunk/mike/actions/workflows/build.yml/badge.svg)](https://github.com/squidfunk/mike/actions/workflows/build.yml)
+
 > [!NOTE]
 >
 > Don't know what Zensical is? Read the [announcement blog post](https://squidfunk.github.io/mkdocs-material/blog/2025/11/05/zensical/).
