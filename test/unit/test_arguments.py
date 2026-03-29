@@ -23,5 +23,4 @@ class TestParser(TestCase):
         p = arguments.ArgumentParser()
         arg = p.add_argument('--arg', action=MyAction, complete='file')
         self.assertEqual(arg.complete, 'file')
-        self.assertEqual(p.parse_args(['--arg=foo']),
-                         arguments.Namespace(arg='FOO'))
+        self.assertEqual(p.parse_args(['--arg=foo']), arguments.Namespace(arg='FOO'))

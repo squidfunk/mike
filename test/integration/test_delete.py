@@ -21,11 +21,9 @@ class DeleteTestCase(unittest.TestCase):
         else:
             self.assertRegex(message, r'^Removed \S+( in .*)? with mike \S+$')
 
-        assertDirectory(directory, {
-            'versions.json',
-            '2.0',
-            '2.0/index.html'
-        }, allow_extra=True)
+        assertDirectory(
+            directory, {'versions.json', '2.0', '2.0/index.html'}, allow_extra=True
+        )
 
 
 class TestDelete(DeleteTestCase):
@@ -33,7 +31,7 @@ class TestDelete(DeleteTestCase):
         self.stage = stage_dir('delete')
         git_init()
         copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_delete_versions(self):
@@ -56,7 +54,7 @@ class TestDelete(DeleteTestCase):
         os.mkdir('sub')
         with pushd('sub'):
             assertPopen(['mike', 'delete', '1.0'], returncode=1)
-            assertPopen(['mike', 'delete', '1.0', '-F', '../mkdocs.yml'])
+            assertPopen(['mike', 'delete', '1.0', '-F', '../zensical.toml'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_delete()
 
@@ -64,8 +62,7 @@ class TestDelete(DeleteTestCase):
         self._deploy()
         os.mkdir('sub')
         with pushd('sub'):
-            assertPopen(['mike', 'delete', '1.0', '-b', 'gh-pages', '-r',
-                         'origin'])
+            assertPopen(['mike', 'delete', '1.0', '-b', 'gh-pages', '-r', 'origin'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_delete()
 
@@ -89,8 +86,7 @@ class TestDelete(DeleteTestCase):
 
     def test_push(self):
         self._deploy()
-        check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
-                           'ignore'])
+        check_call_silent(['git', 'config', 'receive.denyCurrentBranch', 'ignore'])
         stage_dir('delete_clone')
         check_call_silent(['git', 'clone', self.stage, '.'])
         git_config()
@@ -171,11 +167,17 @@ class TestDelete(DeleteTestCase):
         clone_rev = git_utils.get_latest_commit('gh-pages')
         check_call_silent(['git', 'fetch', 'origin'])
 
-        assertOutput(self, ['mike', 'delete', '1.0'], stdout='', stderr=(
-            'error: gh-pages has diverged from origin/gh-pages\n' +
-            "  If you're sure this is intended, retry with " +
-            '--ignore-remote-status\n'
-        ), returncode=1)
+        assertOutput(
+            self,
+            ['mike', 'delete', '1.0'],
+            stdout='',
+            stderr=(
+                'error: gh-pages has diverged from origin/gh-pages\n'
+                + "  If you're sure this is intended, retry with "
+                + '--ignore-remote-status\n'
+            ),
+            returncode=1,
+        )
         self.assertEqual(git_utils.get_latest_commit('gh-pages'), clone_rev)
 
         assertPopen(['mike', 'delete', '1.0', '--ignore-remote-status'])
@@ -187,10 +189,9 @@ class TestDeleteOtherRemote(DeleteTestCase):
         self.stage_origin = stage_dir('delete_remote')
         git_init()
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
-        check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
-                           'ignore'])
+        check_call_silent(['git', 'config', 'receive.denyCurrentBranch', 'ignore'])
 
     def _clone(self):
         self.stage = stage_dir('delete_remote_clone')

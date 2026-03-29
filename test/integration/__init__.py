@@ -1,5 +1,14 @@
+import os
 import subprocess
+import sys
 import unittest
+
+# Ensure the venv/install's bin directory is first in PATH for subprocesses,
+# so that `mike`, `zensical`, etc. resolve to the same environment as the
+# test runner rather than any system-installed versions.
+_venv_bin = os.path.dirname(sys.executable)
+_subprocess_env = os.environ.copy()
+_subprocess_env['PATH'] = _venv_bin + os.pathsep + _subprocess_env.get('PATH', '')
 
 
 class SubprocessError(unittest.TestCase.failureException):
@@ -12,16 +21,16 @@ class SubprocessError(unittest.TestCase.failureException):
         else:
             output = stdout
 
-        super().__init__('\n{line}\n{output}\n{line}'.format(
-            line=line, output=output
-        ))
+        super().__init__('\n{line}\n{output}\n{line}'.format(line=line, output=output))
 
 
 def assertPopen(command, returncode=0, stderr=False):
     proc = subprocess.run(
-        command, stdout=subprocess.PIPE,
+        command,
+        stdout=subprocess.PIPE,
         stderr=subprocess.PIPE if stderr else subprocess.STDOUT,
-        universal_newlines=True
+        universal_newlines=True,
+        env=_subprocess_env,
     )
     if proc.returncode != returncode:
         raise SubprocessError(proc.stdout, proc.stderr)

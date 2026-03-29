@@ -7,8 +7,11 @@ class HelpTest(unittest.TestCase):
     def test_help(self):
         output = assertPopen(['mike', 'help'])
         self.assertRegex(
-            output, (r'^usage: mike \[-h\] \[--version\] \[-q\] \[--debug\] '
-                     r'COMMAND \.\.\.')
+            output,
+            (
+                r'^usage: mike \[-h\] \[--version\] \[-q\] \[--debug\] '
+                r'COMMAND \.\.\.'
+            ),
         )
 
     def test_help_subcommand(self):
@@ -16,15 +19,19 @@ class HelpTest(unittest.TestCase):
         self.assertRegex(output, r'^usage: mike deploy')
 
     def test_help_subcommand_extra(self):
-        output = assertPopen(['mike', 'help', 'deploy',
-                              '--ignore-remote-status'])
+        output = assertPopen(['mike', 'help', 'deploy', '--ignore-remote-status'])
         self.assertRegex(output, r'^usage: mike deploy')
 
     def test_help_paragraph_formatter(self):
         output = assertPopen(['mike', 'help', 'props'])
         self.assertRegex(output, r'^usage: mike props')
-        self.assertRegex(output, ('(?m)^Get or set properties for the ' +
-                                  'specified version\\.\n\nWhen getting'))
+        self.assertRegex(
+            output,
+            (
+                '(?m)^Get or set properties for the '
+                + 'specified version\\.\n\nWhen getting'
+            ),
+        )
 
 
 class GenerateCompletionTest(unittest.TestCase):

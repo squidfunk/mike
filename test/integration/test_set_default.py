@@ -14,15 +14,15 @@ class SetDefaultTestCase(unittest.TestCase):
         for i in versions:
             assertPopen(['mike', 'deploy', i] + extra_args)
 
-    def _test_default(self, expr=match_redir('1.0/'), expected_message=None,
-                      directory='.'):
+    def _test_default(
+        self, expr=match_redir('1.0/'), expected_message=None, directory='.'
+    ):
         message = assertPopen(['git', 'log', '-1', '--pretty=%B']).rstrip()
         if expected_message:
             self.assertEqual(message, expected_message)
         else:
             self.assertRegex(
-                message,
-                r'^Set default version to \S+( in .*)? with mike \S+$'
+                message, r'^Set default version to \S+( in .*)? with mike \S+$'
             )
 
         with open(os.path.join(directory, 'index.html')) as f:
@@ -34,7 +34,7 @@ class TestSetDefault(SetDefaultTestCase):
         self.stage = stage_dir('set_default')
         git_init()
         copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_set_default(self):
@@ -51,8 +51,15 @@ class TestSetDefault(SetDefaultTestCase):
 
     def test_custom_template(self):
         self._deploy()
-        assertPopen(['mike', 'set-default', '1.0', '-T',
-                     os.path.join(test_data_dir, 'template.html')])
+        assertPopen(
+            [
+                'mike',
+                'set-default',
+                '1.0',
+                '-T',
+                os.path.join(test_data_dir, 'template.html'),
+            ]
+        )
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_default(r'^Redirecting to 1\.0/$')
 
@@ -61,7 +68,7 @@ class TestSetDefault(SetDefaultTestCase):
         os.mkdir('sub')
         with pushd('sub'):
             assertPopen(['mike', 'set-default', '1.0'], returncode=1)
-            assertPopen(['mike', 'set-default', '1.0', '-F', '../mkdocs.yml'])
+            assertPopen(['mike', 'set-default', '1.0', '-F', '../zensical.toml'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_default()
 
@@ -69,8 +76,9 @@ class TestSetDefault(SetDefaultTestCase):
         self._deploy()
         os.mkdir('sub')
         with pushd('sub'):
-            assertPopen(['mike', 'set-default', '1.0', '-b', 'gh-pages',
-                         '-r', 'origin'])
+            assertPopen(
+                ['mike', 'set-default', '1.0', '-b', 'gh-pages', '-r', 'origin']
+            )
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_default()
 
@@ -88,15 +96,13 @@ class TestSetDefault(SetDefaultTestCase):
 
     def test_deploy_prefix(self):
         self._deploy(deploy_prefix='prefix')
-        assertPopen(['mike', 'set-default', '1.0', '--deploy-prefix',
-                     'prefix'])
+        assertPopen(['mike', 'set-default', '1.0', '--deploy-prefix', 'prefix'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_default(directory='prefix')
 
     def test_push(self):
         self._deploy()
-        check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
-                           'ignore'])
+        check_call_silent(['git', 'config', 'receive.denyCurrentBranch', 'ignore'])
         stage_dir('set_default_clone')
         check_call_silent(['git', 'clone', self.stage, '.'])
         git_config()
@@ -112,18 +118,24 @@ class TestSetDefault(SetDefaultTestCase):
         self._deploy()
         assertPopen(['mike', 'set-default', '1.0'])
         rev = git_utils.get_latest_commit('gh-pages')
-        assertOutput(self, ['mike', 'set-default', '1.0'], stdout='', stderr=(
-            'warning: nothing changed in commit\n' +
-            '  To create a commit anyway, retry with --allow-empty\n'
-        ))
+        assertOutput(
+            self,
+            ['mike', 'set-default', '1.0'],
+            stdout='',
+            stderr=(
+                'warning: nothing changed in commit\n'
+                + '  To create a commit anyway, retry with --allow-empty\n'
+            ),
+        )
         self.assertEqual(git_utils.get_latest_commit('gh-pages'), rev)
 
     def test_no_changes_quiet(self):
         self._deploy()
         assertPopen(['mike', 'set-default', '1.0'])
         rev = git_utils.get_latest_commit('gh-pages')
-        assertOutput(self, ['mike', '--quiet', 'set-default', '1.0'],
-                     stdout='', stderr='')
+        assertOutput(
+            self, ['mike', '--quiet', 'set-default', '1.0'], stdout='', stderr=''
+        )
         self.assertEqual(git_utils.get_latest_commit('gh-pages'), rev)
 
     def test_remote_empty(self):
@@ -195,11 +207,17 @@ class TestSetDefault(SetDefaultTestCase):
         clone_rev = git_utils.get_latest_commit('gh-pages')
         check_call_silent(['git', 'fetch', 'origin'])
 
-        assertOutput(self, ['mike', 'set-default', '1.0'], stdout='', stderr=(
-            'error: gh-pages has diverged from origin/gh-pages\n' +
-            "  If you're sure this is intended, retry with " +
-            '--ignore-remote-status\n'
-        ), returncode=1)
+        assertOutput(
+            self,
+            ['mike', 'set-default', '1.0'],
+            stdout='',
+            stderr=(
+                'error: gh-pages has diverged from origin/gh-pages\n'
+                + "  If you're sure this is intended, retry with "
+                + '--ignore-remote-status\n'
+            ),
+            returncode=1,
+        )
         self.assertEqual(git_utils.get_latest_commit('gh-pages'), clone_rev)
 
         assertPopen(['mike', 'set-default', '--ignore-remote-status', '1.0'])
@@ -211,10 +229,9 @@ class TestSetDefaultOtherRemote(SetDefaultTestCase):
         self.stage_origin = stage_dir('set_default_remote')
         git_init()
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
-        check_call_silent(['git', 'add', 'mkdocs.yml', 'docs'])
+        check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
-        check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
-                           'ignore'])
+        check_call_silent(['git', 'config', 'receive.denyCurrentBranch', 'ignore'])
 
     def _clone(self):
         self.stage = stage_dir('set_default_remote_clone')

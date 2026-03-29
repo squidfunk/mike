@@ -28,13 +28,16 @@ class VersionInfo:
 
     @classmethod
     def from_json(cls, data):
-        return cls(data['version'], data['title'], data['aliases'],
-                   data.get('properties'))
+        return cls(
+            data['version'], data['title'], data['aliases'], data.get('properties')
+        )
 
     def to_json(self):
-        data = {'version': str(self.version),
-                'title': self.title,
-                'aliases': list(self.aliases)}
+        data = {
+            'version': str(self.version),
+            'title': self.title,
+            'aliases': list(self.aliases),
+        }
         if self.properties:
             data['properties'] = self.properties
         return data
@@ -48,20 +51,23 @@ class VersionInfo:
 
     @staticmethod
     def _check_version(version, kind):
-        if ( not version or version in ['.', '..'] or
-             re.search(r'[\\/]', version) ):
+        if not version or version in ['.', '..'] or re.search(r'[\\/]', version):
             raise ValueError('{!r} is not a valid {}'.format(version, kind))
 
     def __eq__(self, rhs):
-        return (str(self.version) == str(rhs.version) and
-                self.title == rhs.title and
-                self.aliases == rhs.aliases and
-                self.properties == rhs.properties)
+        return (
+            str(self.version) == str(rhs.version)
+            and self.title == rhs.title
+            and self.aliases == rhs.aliases
+            and self.properties == rhs.properties
+        )
 
     def __repr__(self):
         return '<VersionInfo({!r}, {!r}, {{{}}}{})>'.format(
-            self.version, self.title, ', '.join(repr(i) for i in self.aliases),
-            ', {!r}'.format(self.properties) if self.properties else ''
+            self.version,
+            self.title,
+            ', '.join(repr(i) for i in self.aliases),
+            ', {!r}'.format(self.properties) if self.properties else '',
         )
 
     def update(self, title=None, aliases=[]):
@@ -113,8 +119,7 @@ class Versions:
         def key(info):
             # Development versions (i.e. those without a leading digit) should
             # be treated as newer than release versions.
-            return (0 if re.match(r'v?\d', str(info.version))
-                    else 1, info.version)
+            return (0 if re.match(r'v?\d', str(info.version)) else 1, info.version)
 
         return (i for i in sorted(self._data.values(), reverse=True, key=key))
 
@@ -155,8 +160,9 @@ class Versions:
                     )
                 if not update_aliases:
                     raise ValueError(
-                        'alias {!r} already exists for version {!r}'
-                        .format(i, str(key[0]))
+                        'alias {!r} already exists for version {!r}'.format(
+                            i, str(key[0])
+                        )
                     )
                 removed_aliases.append(key)
 
@@ -164,9 +170,7 @@ class Versions:
 
     def add(self, version, title=None, aliases=[], update_aliases=False):
         v = str(version)
-        removed_aliases = self._ensure_unique_aliases(
-            v, aliases, update_aliases
-        )
+        removed_aliases = self._ensure_unique_aliases(v, aliases, update_aliases)
 
         if v in self._data:
             self._data[v].update(title, aliases)
@@ -181,9 +185,7 @@ class Versions:
 
     def update(self, identifier, title=None, aliases=[], update_aliases=False):
         key = self.find(identifier, strict=True)
-        removed_aliases = self._ensure_unique_aliases(
-            key[0], aliases, update_aliases
-        )
+        removed_aliases = self._ensure_unique_aliases(key[0], aliases, update_aliases)
 
         # Remove aliases from old versions that we've moved to this version.
         for i in removed_aliases:

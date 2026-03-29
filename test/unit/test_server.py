@@ -29,11 +29,11 @@ class TestGitBranchHTTPHandler(unittest.TestCase):
         self.server.handle_request(req)
         self.assertRegex(
             req.response,
-            b'HTTP/1.0 200 OK\r\n' +
-            b'Server: MikeHTTP.*\r\n' +
-            b'Date: .*\r\n' +
-            b'Content-Type: text/html\r\n\r\n' +
-            b'main page$'
+            b'HTTP/1.0 200 OK\r\n'
+            + b'Server: MikeHTTP.*\r\n'
+            + b'Date: .*\r\n'
+            + b'Content-Type: text/html\r\n\r\n'
+            + b'main page$',
         )
 
     def test_file(self):
@@ -41,11 +41,11 @@ class TestGitBranchHTTPHandler(unittest.TestCase):
         self.server.handle_request(req)
         self.assertRegex(
             req.response,
-            b'HTTP/1.0 200 OK\r\n' +
-            b'Server: MikeHTTP.*\r\n' +
-            b'Date: .*\r\n' +
-            b'Content-Type: text/html\r\n\r\n' +
-            b'main page$'
+            b'HTTP/1.0 200 OK\r\n'
+            + b'Server: MikeHTTP.*\r\n'
+            + b'Date: .*\r\n'
+            + b'Content-Type: text/html\r\n\r\n'
+            + b'main page$',
         )
 
     def test_dir(self):
@@ -53,11 +53,11 @@ class TestGitBranchHTTPHandler(unittest.TestCase):
         self.server.handle_request(req)
         self.assertRegex(
             req.response,
-            b'HTTP/1.0 200 OK\r\n' +
-            b'Server: MikeHTTP.*\r\n' +
-            b'Date: .*\r\n' +
-            b'Content-Type: text/html\r\n\r\n' +
-            b'sub page$'
+            b'HTTP/1.0 200 OK\r\n'
+            + b'Server: MikeHTTP.*\r\n'
+            + b'Date: .*\r\n'
+            + b'Content-Type: text/html\r\n\r\n'
+            + b'sub page$',
         )
 
     def test_dir_redirect(self):
@@ -65,10 +65,10 @@ class TestGitBranchHTTPHandler(unittest.TestCase):
         self.server.handle_request(req)
         self.assertRegex(
             req.response,
-            b'HTTP/1.0 301 Moved Permanently\r\n' +
-            b'Server: MikeHTTP.*\r\n' +
-            b'Date: .*\r\n' +
-            b'Location: /dir/\r\n\r\n$'
+            b'HTTP/1.0 301 Moved Permanently\r\n'
+            + b'Server: MikeHTTP.*\r\n'
+            + b'Date: .*\r\n'
+            + b'Location: /dir/\r\n\r\n$',
         )
 
     def test_head(self):
@@ -76,10 +76,10 @@ class TestGitBranchHTTPHandler(unittest.TestCase):
         self.server.handle_request(req)
         self.assertRegex(
             req.response,
-            b'HTTP/1.0 200 OK\r\n' +
-            b'Server: MikeHTTP.*\r\n' +
-            b'Date: .*\r\n' +
-            b'Content-Type: text/html\r\n\r\n$'
+            b'HTTP/1.0 200 OK\r\n'
+            + b'Server: MikeHTTP.*\r\n'
+            + b'Date: .*\r\n'
+            + b'Content-Type: text/html\r\n\r\n$',
         )
 
     def test_404(self):
@@ -87,9 +87,9 @@ class TestGitBranchHTTPHandler(unittest.TestCase):
         self.server.handle_request(req)
         self.assertRegex(
             req.response,
-            b'HTTP/1.0 404 File not found\r\n' +
-            b'Server: MikeHTTP.*\r\n' +
-            b'Date: .*\r\n'
+            b'HTTP/1.0 404 File not found\r\n'
+            + b'Server: MikeHTTP.*\r\n'
+            + b'Date: .*\r\n',
         )
 
     def test_404_root(self):
@@ -100,7 +100,7 @@ class TestGitBranchHTTPHandler(unittest.TestCase):
         self.server.handle_request(req)
         self.assertRegex(
             req.response,
-            b'HTTP/1.0 404 File not found. Did you.*\r\n' +
-            b'Server: MikeHTTP.*\r\n' +
-            b'Date: .*\r\n'
+            b'HTTP/1.0 404 File not found. Did you.*\r\n'
+            + b'Server: MikeHTTP.*\r\n'
+            + b'Date: .*\r\n',
         )

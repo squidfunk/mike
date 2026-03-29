@@ -9,6 +9,7 @@ _Action = Action
 # Add some simple wrappers to make it easier to specify shell-completion
 # behaviors.
 
+
 def _add_complete(argument, complete):
     if complete is not None:
         argument.complete = complete
@@ -18,8 +19,9 @@ def _add_complete(argument, complete):
 class ParagraphDescriptionHelpFormatter(HelpFormatter):
     def _fill_text(self, text, width, indent):
         # Re-fill text, but keep paragraphs. Why isn't this the default???
-        return '\n\n'.join(_textwrap.fill(i, width) for i in
-                           _re.split('\n\n', text.strip()))
+        return '\n\n'.join(
+            _textwrap.fill(i, width) for i in _re.split('\n\n', text.strip())
+        )
 
 
 class Action(_Action):

@@ -6,6 +6,7 @@ from contextlib import contextmanager
 
 docs_version_var = 'MIKE_DOCS_VERSION'
 
+
 def _open_config(config_file=None):
     if config_file is None:
         config_file = ['zensical.toml', 'mkdocs.yml', 'mkdocs.yaml']
@@ -15,7 +16,7 @@ def _open_config(config_file=None):
     exc = None
     for file in config_file:
         try:
-            with open(file, encoding="utf-8"):
+            with open(file, encoding='utf-8'):
                 pass
             return file
         except FileNotFoundError as e:
@@ -26,7 +27,13 @@ def _open_config(config_file=None):
 
 def load_config(config_file=None, **kwargs):
     config_file = _open_config(config_file)
-    return parse_config(config_file)
+    cfg = parse_config(config_file)
+    # Zensical returns site_dir as a relative path; make it absolute so that
+    # commands work correctly when invoked from a subdirectory.
+    config_dir = os.path.dirname(os.path.abspath(config_file))
+    cfg['site_dir'] = os.path.join(config_dir, cfg['site_dir'])
+    return cfg
+
 
 @contextmanager
 def inject_plugin(config_file):
@@ -35,9 +42,8 @@ def inject_plugin(config_file):
 
 
 def build(config_file, version, *, quiet=False, output=None):
-    command = (
-        ['zensical', 'build', '--clean'] +
-        (['--config-file', config_file] if config_file else [])
+    command = ['zensical', 'build', '--clean'] + (
+        ['--config-file', config_file] if config_file else []
     )
 
     env = os.environ.copy()
@@ -49,6 +55,8 @@ def build(config_file, version, *, quiet=False, output=None):
 def version():
     output = subprocess.run(
         ['zensical', '--version'],
-        check=True, stdout=subprocess.PIPE, universal_newlines=True
+        check=True,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
     ).stdout.rstrip()
     return output

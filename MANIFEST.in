@@ -1,3 +1,0 @@
-include CHANGES.md
-include mike/templates/redirect.html
-recursive-include mike/themes *.js *.css

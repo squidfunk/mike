@@ -1,21 +1,17 @@
 import http.server
 import os
 import posixpath
-import sys
 from contextlib import contextmanager
 from enum import Enum
 from jinja2 import Template
 
 from . import git_utils
-from . import mkdocs_utils
+from . import utils
 from . import server
 from .app_version import version as app_version
 from .versions import Versions
 
-if sys.version_info < (3, 10):
-    import importlib_resources as resources
-else:
-    from importlib import resources
+from importlib import resources
 
 versions_file = 'versions.json'
 AliasType = Enum('AliasType', ['symlink', 'copy', 'redirect'])
@@ -26,17 +22,16 @@ def _format_deploy_prefix(deploy_prefix):
 
 
 def _redirect_template(user_template=None):
-    template_file = (
-        user_template or
-        resources.files('mike').joinpath('templates/redirect.html')
+    template_file = user_template or resources.files('mike').joinpath(
+        'templates/redirect.html'
     )
     with open(template_file, 'rb') as f:
-        return Template(f.read().decode('utf-8'), autoescape=True,
-                        keep_trailing_newline=True)
+        return Template(
+            f.read().decode('utf-8'), autoescape=True, keep_trailing_newline=True
+        )
 
 
-def _add_redirect_to_commit(commit, template, src, dst,
-                            use_directory_urls):
+def _add_redirect_to_commit(commit, template, src, dst, use_directory_urls):
     if os.path.splitext(src)[1] == '.html':
         reldst = os.path.relpath(dst, os.path.dirname(src))
         href = '/'.join(reldst.split(os.path.sep))
@@ -47,17 +42,21 @@ def _add_redirect_to_commit(commit, template, src, dst,
 
 def list_versions(branch='gh-pages', deploy_prefix=''):
     try:
-        return Versions.loads(git_utils.read_file(
-            branch, os.path.join(deploy_prefix, versions_file),
-            universal_newlines=True
-        ))
+        return Versions.loads(
+            git_utils.read_file(
+                branch,
+                os.path.join(deploy_prefix, versions_file),
+                universal_newlines=True,
+            )
+        )
     except git_utils.GitError:
         return Versions()
 
 
 def versions_to_file_info(versions, deploy_prefix=''):
-    return git_utils.FileInfo(os.path.join(deploy_prefix, versions_file),
-                              versions.dumps() + '\n')
+    return git_utils.FileInfo(
+        os.path.join(deploy_prefix, versions_file), versions.dumps() + '\n'
+    )
 
 
 def make_nojekyll():
@@ -65,19 +64,31 @@ def make_nojekyll():
 
 
 @contextmanager
-def deploy(cfg, version, title=None, aliases=[], update_aliases=False,
-           alias_type=AliasType.symlink, template=None, *, branch='gh-pages',
-           message=None, allow_empty=False, deploy_prefix='', set_props=[]):
+def deploy(
+    cfg,
+    version,
+    title=None,
+    aliases=[],
+    update_aliases=False,
+    alias_type=AliasType.symlink,
+    template=None,
+    *,
+    branch='gh-pages',
+    message=None,
+    allow_empty=False,
+    deploy_prefix='',
+    set_props=[],
+):
     if message is None:
         message = (
-            'Deployed {rev} to {doc_version}{deploy_prefix} with MkDocs ' +
-            '{mkdocs_version} and mike {mike_version}'
+            'Deployed {rev} to {doc_version}{deploy_prefix} with Zensical '
+            + '{zensical_version} and mike {mike_version}'
         ).format(
             rev=git_utils.get_latest_commit('HEAD', short=True),
             doc_version=version,
             deploy_prefix=_format_deploy_prefix(deploy_prefix),
-            mkdocs_version=mkdocs_utils.version(),
-            mike_version=app_version
+            zensical_version=utils.version(),
+            mike_version=app_version,
         )
 
     all_versions = list_versions(branch, deploy_prefix)
@@ -105,8 +116,11 @@ def deploy(cfg, version, title=None, aliases=[], update_aliases=False,
                 alias_file = f.copy(d, cfg['site_dir'])
                 if alias_type == AliasType.redirect:
                     _add_redirect_to_commit(
-                        commit, t, alias_file.path, canonical_file.path,
-                        cfg['use_directory_urls']
+                        commit,
+                        t,
+                        alias_file.path,
+                        canonical_file.path,
+                        cfg['use_directory_urls'],
                     )
                 elif alias_type == AliasType.copy:
                     commit.add_file(alias_file)
@@ -116,16 +130,25 @@ def deploy(cfg, version, title=None, aliases=[], update_aliases=False,
         if alias_type == AliasType.symlink:
             for d in alias_destdirs:
                 base_dir = os.path.join(d, '..')
-                commit.add_file(git_utils.FileInfo(
-                    d, os.path.relpath(destdir, base_dir), mode=0o120000
-                ))
+                commit.add_file(
+                    git_utils.FileInfo(
+                        d, os.path.relpath(destdir, base_dir), mode=0o120000
+                    )
+                )
 
         commit.add_file(versions_to_file_info(all_versions, deploy_prefix))
         commit.add_file(make_nojekyll())
 
 
-def delete(identifiers=None, all=False, *, branch='gh-pages', message=None,
-           allow_empty=False, deploy_prefix=''):
+def delete(
+    identifiers=None,
+    all=False,
+    *,
+    branch='gh-pages',
+    message=None,
+    allow_empty=False,
+    deploy_prefix='',
+):
     if not all and identifiers is None:
         raise ValueError('specify `identifiers` or `all`')
 
@@ -135,7 +158,7 @@ def delete(identifiers=None, all=False, *, branch='gh-pages', message=None,
         ).format(
             doc_identifiers='everything' if all else ', '.join(identifiers),
             deploy_prefix=_format_deploy_prefix(deploy_prefix),
-            mike_version=app_version
+            mike_version=app_version,
         )
 
     with git_utils.Commit(branch, message, allow_empty=allow_empty) as commit:
@@ -149,23 +172,32 @@ def delete(identifiers=None, all=False, *, branch='gh-pages', message=None,
             try:
                 removed = all_versions.difference_update(identifiers)
             except KeyError as e:
-                raise ValueError('unable to delete nonexistant identifier {}'
-                                 .format(e))
+                raise ValueError('unable to delete nonexistant identifier {}'.format(e))
 
             for i in removed:
                 if isinstance(i, str):
                     commit.delete_files([os.path.join(deploy_prefix, i)])
                 else:
                     commit.delete_files(
-                        [os.path.join(deploy_prefix, str(i.version))] +
-                        [os.path.join(deploy_prefix, j) for j in i.aliases]
+                        [os.path.join(deploy_prefix, str(i.version))]
+                        + [os.path.join(deploy_prefix, j) for j in i.aliases]
                     )
             commit.add_file(versions_to_file_info(all_versions, deploy_prefix))
 
 
-def alias(cfg, identifier, aliases, update_aliases=False,
-          alias_type=AliasType.symlink, template=None, *, branch='gh-pages',
-          message=None, allow_empty=False, deploy_prefix=''):
+def alias(
+    cfg,
+    identifier,
+    aliases,
+    update_aliases=False,
+    alias_type=AliasType.symlink,
+    template=None,
+    *,
+    branch='gh-pages',
+    message=None,
+    allow_empty=False,
+    deploy_prefix='',
+):
     all_versions = list_versions(branch, deploy_prefix)
     try:
         real_version = all_versions.find(identifier, strict=True)[0]
@@ -174,17 +206,18 @@ def alias(cfg, identifier, aliases, update_aliases=False,
 
     if message is None:
         message = (
-            'Copied {doc_version} to {aliases}{deploy_prefix} with mike ' +
-            '{mike_version}'
+            'Copied {doc_version} to {aliases}{deploy_prefix} with mike '
+            + '{mike_version}'
         ).format(
             doc_version=real_version,
             aliases=', '.join(aliases),
             deploy_prefix=_format_deploy_prefix(deploy_prefix),
-            mike_version=app_version
+            mike_version=app_version,
         )
 
-    new_aliases = all_versions.update(real_version, aliases=aliases,
-                                      update_aliases=update_aliases)
+    new_aliases = all_versions.update(
+        real_version, aliases=aliases, update_aliases=update_aliases
+    )
     destdirs = [os.path.join(deploy_prefix, i) for i in new_aliases]
 
     if alias_type == AliasType.redirect and destdirs:
@@ -199,8 +232,11 @@ def alias(cfg, identifier, aliases, update_aliases=False,
                 alias_file = canonical_file.copy(d, canonical_dir)
                 if alias_type == AliasType.redirect:
                     _add_redirect_to_commit(
-                        commit, t, alias_file.path, canonical_file.path,
-                        cfg['use_directory_urls']
+                        commit,
+                        t,
+                        alias_file.path,
+                        canonical_file.path,
+                        cfg['use_directory_urls'],
                     )
                 elif alias_type == AliasType.copy:
                     commit.add_file(alias_file)
@@ -210,9 +246,11 @@ def alias(cfg, identifier, aliases, update_aliases=False,
         if alias_type == AliasType.symlink:
             for d in destdirs:
                 base_dir = os.path.join(d, '..')
-                commit.add_file(git_utils.FileInfo(
-                    d, os.path.relpath(canonical_dir, base_dir), mode=0o120000
-                ))
+                commit.add_file(
+                    git_utils.FileInfo(
+                        d, os.path.relpath(canonical_dir, base_dir), mode=0o120000
+                    )
+                )
 
         commit.add_file(versions_to_file_info(all_versions, deploy_prefix))
 
@@ -228,8 +266,15 @@ def get_property(identifier, prop, *, branch='gh-pages', deploy_prefix=''):
     return info.get_property(prop)
 
 
-def set_properties(identifier, set_props, *, branch='gh-pages', message=None,
-                   allow_empty=False, deploy_prefix=''):
+def set_properties(
+    identifier,
+    set_props,
+    *,
+    branch='gh-pages',
+    message=None,
+    allow_empty=False,
+    deploy_prefix='',
+):
     all_versions = list_versions(branch, deploy_prefix)
     try:
         real_version = all_versions.find(identifier, strict=True)[0]
@@ -239,12 +284,12 @@ def set_properties(identifier, set_props, *, branch='gh-pages', message=None,
 
     if message is None:
         message = (
-            'Set properties for {doc_version}{deploy_prefix} with mike ' +
-            '{mike_version}'
+            'Set properties for {doc_version}{deploy_prefix} with mike '
+            + '{mike_version}'
         ).format(
             doc_version=real_version,
             deploy_prefix=_format_deploy_prefix(deploy_prefix),
-            mike_version=app_version
+            mike_version=app_version,
         )
 
     for path, value in set_props:
@@ -254,17 +299,24 @@ def set_properties(identifier, set_props, *, branch='gh-pages', message=None,
         commit.add_file(versions_to_file_info(all_versions, deploy_prefix))
 
 
-def retitle(identifier, title, *, branch='gh-pages', message=None,
-            allow_empty=False, deploy_prefix=''):
+def retitle(
+    identifier,
+    title,
+    *,
+    branch='gh-pages',
+    message=None,
+    allow_empty=False,
+    deploy_prefix='',
+):
     if message is None:
         message = (
-            'Set title of {doc_identifier} to {title}{deploy_prefix} with ' +
-            'mike {mike_version}'
+            'Set title of {doc_identifier} to {title}{deploy_prefix} with '
+            + 'mike {mike_version}'
         ).format(
             doc_identifier=identifier,
             title=title,
             deploy_prefix=_format_deploy_prefix(deploy_prefix),
-            mike_version=app_version
+            mike_version=app_version,
         )
 
     all_versions = list_versions(branch, deploy_prefix)
@@ -277,17 +329,24 @@ def retitle(identifier, title, *, branch='gh-pages', message=None,
         commit.add_file(versions_to_file_info(all_versions, deploy_prefix))
 
 
-def set_default(identifier, template=None, allow_undefined=False, *,
-                branch='gh-pages', message=None, allow_empty=False,
-                deploy_prefix=''):
+def set_default(
+    identifier,
+    template=None,
+    allow_undefined=False,
+    *,
+    branch='gh-pages',
+    message=None,
+    allow_empty=False,
+    deploy_prefix='',
+):
     if message is None:
         message = (
-            'Set default version to {doc_identifier}{deploy_prefix} with ' +
-            'mike {mike_version}'
+            'Set default version to {doc_identifier}{deploy_prefix} with '
+            + 'mike {mike_version}'
         ).format(
             doc_identifier=identifier,
             deploy_prefix=_format_deploy_prefix(deploy_prefix),
-            mike_version=app_version
+            mike_version=app_version,
         )
 
     all_versions = list_versions(branch, deploy_prefix)
@@ -296,10 +355,12 @@ def set_default(identifier, template=None, allow_undefined=False, *,
 
     t = _redirect_template(template)
     with git_utils.Commit(branch, message, allow_empty=allow_empty) as commit:
-        commit.add_file(git_utils.FileInfo(
-            os.path.join(deploy_prefix, 'index.html'),
-            t.render(href=identifier + '/')
-        ))
+        commit.add_file(
+            git_utils.FileInfo(
+                os.path.join(deploy_prefix, 'index.html'),
+                t.render(href=identifier + '/'),
+            )
+        )
 
 
 def serve(address='localhost:8000', *, branch='gh-pages', verbose=True):

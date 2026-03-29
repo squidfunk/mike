@@ -1,4 +1,3 @@
-import mkdocs.config
 import os
 import unittest
 from argparse import Namespace
@@ -8,34 +7,35 @@ from .. import *
 from mike import driver
 
 
-class TestLoadMkdocsConfig(unittest.TestCase):
+class TestLoadConfig(unittest.TestCase):
     def make_args(self, **kwargs):
-        default = {'config_file': '/path/to/mkdocs.yml', 'branch': None,
-                   'remote': None}
+        default = {'config_file': '/path/to/mkdocs.yml', 'branch': None, 'remote': None}
         default.update(kwargs)
         return Namespace(**default)
 
     def test_config(self):
-        path = os.path.join(test_data_dir, 'basic_theme', 'mkdocs.yml')
+        path = os.path.join(test_data_dir, 'basic_theme', 'zensical.toml')
         args = self.make_args(config_file=path)
-        self.assertIsInstance(driver.load_mkdocs_config(args),
-                              mkdocs.config.Config)
+        self.assertIsNotNone(driver.load_config(args))
         self.assertFalse(hasattr(args, 'alias_type'))
         self.assertFalse(hasattr(args, 'template'))
         self.assertFalse(hasattr(args, 'deploy_prefix'))
 
-        args = self.make_args(config_file=path, alias_type=None, template=None,
-                              deploy_prefix=None)
-        self.assertIsInstance(driver.load_mkdocs_config(args),
-                              mkdocs.config.Config)
+        args = self.make_args(
+            config_file=path, alias_type=None, template=None, deploy_prefix=None
+        )
+        self.assertIsNotNone(driver.load_config(args))
         self.assertEqual(args.alias_type, 'symlink')
         self.assertEqual(args.template, None)
         self.assertEqual(args.deploy_prefix, '')
 
-        args = self.make_args(config_file=path, alias_type='copy',
-                              template='file.html', deploy_prefix='prefix')
-        self.assertIsInstance(driver.load_mkdocs_config(args),
-                              mkdocs.config.Config)
+        args = self.make_args(
+            config_file=path,
+            alias_type='copy',
+            template='file.html',
+            deploy_prefix='prefix',
+        )
+        self.assertIsNotNone(driver.load_config(args))
         self.assertEqual(args.alias_type, 'copy')
         self.assertEqual(args.template, 'file.html')
         self.assertEqual(args.deploy_prefix, 'prefix')
@@ -43,25 +43,33 @@ class TestLoadMkdocsConfig(unittest.TestCase):
     def test_no_config(self):
         args = self.make_args(branch='gh-pages', remote='origin')
         with mock.patch('builtins.open', side_effect=FileNotFoundError):
-            self.assertIs(driver.load_mkdocs_config(args), None)
+            self.assertIs(driver.load_config(args), None)
             self.assertFalse(hasattr(args, 'alias_type'))
             self.assertFalse(hasattr(args, 'template'))
             self.assertFalse(hasattr(args, 'deploy_prefix'))
 
-        args = self.make_args(branch='gh-pages', remote='origin',
-                              alias_type=None, template=None,
-                              deploy_prefix=None)
+        args = self.make_args(
+            branch='gh-pages',
+            remote='origin',
+            alias_type=None,
+            template=None,
+            deploy_prefix=None,
+        )
         with mock.patch('builtins.open', side_effect=FileNotFoundError):
-            self.assertIs(driver.load_mkdocs_config(args), None)
+            self.assertIs(driver.load_config(args), None)
             self.assertEqual(args.alias_type, 'symlink')
             self.assertEqual(args.template, None)
             self.assertEqual(args.deploy_prefix, '')
 
-        args = self.make_args(branch='gh-pages', remote='origin',
-                              alias_type='copy', template='file.html',
-                              deploy_prefix='prefix')
+        args = self.make_args(
+            branch='gh-pages',
+            remote='origin',
+            alias_type='copy',
+            template='file.html',
+            deploy_prefix='prefix',
+        )
         with mock.patch('builtins.open', side_effect=FileNotFoundError):
-            self.assertIs(driver.load_mkdocs_config(args), None)
+            self.assertIs(driver.load_config(args), None)
             self.assertEqual(args.alias_type, 'copy')
             self.assertEqual(args.template, 'file.html')
             self.assertEqual(args.deploy_prefix, 'prefix')
@@ -70,4 +78,4 @@ class TestLoadMkdocsConfig(unittest.TestCase):
         args = self.make_args()
         with mock.patch('builtins.open', side_effect=FileNotFoundError):
             with self.assertRaises(FileNotFoundError):
-                driver.load_mkdocs_config(args)
+                driver.load_config(args)

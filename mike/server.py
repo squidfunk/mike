@@ -37,9 +37,7 @@ class GitBranchHTTPHandler(BaseHTTPRequestHandler):
                     # Redirect the browser to a URL with a slash at the end,
                     # like Apache.
                     self.send_response(301)
-                    dest = urlparse.urlunsplit(
-                        url[:2] + (url[2] + '/',) + url[3:]
-                    )
+                    dest = urlparse.urlunsplit(url[:2] + (url[2] + '/',) + url[3:])
                     self.send_header('Location', dest)
                     self.end_headers()
                     return
@@ -56,9 +54,9 @@ class GitBranchHTTPHandler(BaseHTTPRequestHandler):
             msg = 'File not found'
             if self.path == '/':
                 msg = (
-                    '{}. Did you forget to run `mike set-default`? ' +
-                    'Alternately, you can navigate to {}:{}/[some-version] ' +
-                    'to see your docs'
+                    '{}. Did you forget to run `mike set-default`? '
+                    + 'Alternately, you can navigate to {}:{}/[some-version] '
+                    + 'to see your docs'
                 ).format(msg, self.server.server_name, self.server.server_port)
             self.send_error(404, msg, self.path)
         except Exception:  # pragma: no cover

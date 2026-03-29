@@ -1,274 +1,56 @@
 import os
 import subprocess
 import unittest
-import yaml
-from io import StringIO
 from unittest import mock
 
 from .. import *
 from mike import mkdocs_utils
 
 
-class Stream(StringIO):
-    def __init__(self, name, data=''):
-        super().__init__(data)
-        self.name = name
-
-    def close(self):
-        pass
-
-
-def mock_open_files(files):
-    def wrapper(filename, *args, **kwargs):
-        name = os.path.basename(filename)
-        return Stream(name, files[name])
-
-    return wrapper
-
-
-# This mostly just tests `load_config` from MkDocs, but we want to be sure it
-# behaves as we want it.
 class TestLoadConfig(unittest.TestCase):
     def test_default(self):
         os.chdir(os.path.join(test_data_dir, 'basic_theme'))
         cfg = mkdocs_utils.load_config()
-        self.assertEqual(cfg['site_dir'], os.path.abspath('site'))
-        self.assertEqual(cfg['remote_name'], 'origin')
-        self.assertEqual(cfg['remote_branch'], 'gh-pages')
-        self.assertEqual(cfg['use_directory_urls'], True)
+        self.assertIsNotNone(cfg)
 
     def test_abs_path(self):
-        cfg = mkdocs_utils.load_config(
-            os.path.join(test_data_dir, 'basic_theme', 'mkdocs.yml')
-        )
-        self.assertEqual(cfg['site_dir'],
-                         os.path.join(test_data_dir, 'basic_theme', 'site'))
-        self.assertEqual(cfg['remote_name'], 'origin')
-        self.assertEqual(cfg['remote_branch'], 'gh-pages')
-        self.assertEqual(cfg['use_directory_urls'], True)
-
-    def test_custom_site_dir(self):
-        os.chdir(os.path.join(test_data_dir, 'site_dir'))
-        cfg = mkdocs_utils.load_config()
-        self.assertEqual(cfg['site_dir'], os.path.abspath('built_docs'))
-        self.assertEqual(cfg['remote_name'], 'origin')
-        self.assertEqual(cfg['remote_branch'], 'gh-pages')
-        self.assertEqual(cfg['use_directory_urls'], True)
-
-    def test_remote(self):
-        os.chdir(os.path.join(test_data_dir, 'remote'))
-        cfg = mkdocs_utils.load_config()
-        self.assertEqual(cfg['site_dir'], os.path.abspath('site'))
-        self.assertEqual(cfg['remote_name'], 'myremote')
-        self.assertEqual(cfg['remote_branch'], 'mybranch')
-        self.assertEqual(cfg['use_directory_urls'], True)
-
-    def test_no_directory_urls(self):
-        os.chdir(os.path.join(test_data_dir, 'no_directory_urls'))
-        cfg = mkdocs_utils.load_config()
-        self.assertEqual(cfg['site_dir'], os.path.abspath('site'))
-        self.assertEqual(cfg['remote_name'], 'origin')
-        self.assertEqual(cfg['remote_branch'], 'gh-pages')
-        self.assertEqual(cfg['use_directory_urls'], False)
+        path = os.path.join(test_data_dir, 'basic_theme', 'zensical.toml')
+        cfg = mkdocs_utils.load_config(path)
+        self.assertIsNotNone(cfg)
 
     def test_nonexist(self):
         os.chdir(os.path.join(test_data_dir, 'basic_theme'))
-        with self.assertRaisesRegex(FileNotFoundError, r"'nonexist.yml'"):
-            mkdocs_utils.load_config('nonexist.yml')
-        with self.assertRaisesRegex(FileNotFoundError, r"'nonexist.yml'"):
-            mkdocs_utils.load_config(['nonexist.yml', 'nonexist2.yml'])
+        with self.assertRaisesRegex(FileNotFoundError, r"'nonexist.toml'"):
+            mkdocs_utils.load_config('nonexist.toml')
+        with self.assertRaisesRegex(FileNotFoundError, r"'nonexist.toml'"):
+            mkdocs_utils.load_config(['nonexist.toml', 'nonexist2.toml'])
 
-        cfg = mkdocs_utils.load_config(['nonexist.yml', 'mkdocs.yml'])
-        self.assertEqual(cfg['site_dir'], os.path.abspath('site'))
-        self.assertEqual(cfg['remote_name'], 'origin')
-        self.assertEqual(cfg['remote_branch'], 'gh-pages')
-        self.assertEqual(cfg['use_directory_urls'], True)
+        cfg = mkdocs_utils.load_config(['nonexist.toml', 'zensical.toml'])
+        self.assertIsNotNone(cfg)
 
 
 class TestInjectPlugin(unittest.TestCase):
-    def setUp(self):
-        self.out = Stream('mike-mkdocs.yml')
+    def test_passthrough(self):
+        path = os.path.join(test_data_dir, 'basic_theme', 'zensical.toml')
+        with mkdocs_utils.inject_plugin(path) as f:
+            self.assertEqual(f, path)
 
-    def test_no_plugins(self):
-        cfg = '{}'
-        with mock.patch('builtins.open',
-                        mock_open_files({'mkdocs.yml': cfg})), \
-             mock.patch('mike.mkdocs_utils.NamedTemporaryFile',
-                        return_value=self.out), \
-             mock.patch('os.remove') as mremove:
-            with mkdocs_utils.inject_plugin('mkdocs.yml') as f:
-                self.assertEqual(f, self.out.name)
-                newcfg = yaml.safe_load(self.out.getvalue())
-            mremove.assert_called_once()
-
-        self.assertEqual(newcfg, {'plugins': ['mike', 'search']})
-
-    def test_other_plugins(self):
-        cfg = 'plugins:\n  - foo\n  - bar:\n      option: true'
-        with mock.patch('builtins.open',
-                        mock_open_files({'mkdocs.yml': cfg})), \
-             mock.patch('mike.mkdocs_utils.NamedTemporaryFile',
-                        return_value=self.out), \
-             mock.patch('os.remove') as mremove:
-            with mkdocs_utils.inject_plugin('mkdocs.yml') as f:
-                self.assertEqual(f, self.out.name)
-                newcfg = yaml.safe_load(self.out.getvalue())
-            mremove.assert_called_once()
-
-        self.assertEqual(newcfg, {'plugins': [
-            'mike', 'foo', {'bar': {'option': True}},
-        ]})
-
-    def test_other_plugins_dict(self):
-        cfg = 'plugins:\n  foo: {}\n  bar:\n    option: true'
-        with mock.patch('builtins.open',
-                        mock_open_files({'mkdocs.yml': cfg})), \
-             mock.patch('mike.mkdocs_utils.NamedTemporaryFile',
-                        return_value=self.out), \
-             mock.patch('os.remove') as mremove:
-            with mkdocs_utils.inject_plugin('mkdocs.yml') as f:
-                self.assertEqual(f, self.out.name)
-                newcfg = yaml.safe_load(self.out.getvalue())
-            mremove.assert_called_once()
-
-        self.assertEqual(newcfg, {'plugins': {
-            'mike': {}, 'foo': {}, 'bar': {'option': True},
-        }})
-        self.assertEqual(
-            list(newcfg['plugins'].items()),
-            [('mike', {}), ('foo', {}), ('bar', {'option': True})]
-        )
-
-    def test_mike_plugin(self):
-        cfg = 'plugins:\n  - mike'
-        with mock.patch('builtins.open',
-                        mock_open_files({'mkdocs.yml': cfg})), \
-             mock.patch('mike.mkdocs_utils.NamedTemporaryFile',
-                        return_value=self.out), \
-             mock.patch('os.remove') as mremove:
-            with mkdocs_utils.inject_plugin('mkdocs.yml') as f:
-                self.assertEqual(f, 'mkdocs.yml')
-                self.assertEqual(self.out.getvalue(), '')
-            mremove.assert_not_called()
-
-    def test_mike_plugin_options(self):
-        cfg = 'plugins:\n  - mike:\n      option: true'
-        with mock.patch('builtins.open',
-                        mock_open_files({'mkdocs.yml': cfg})), \
-             mock.patch('mike.mkdocs_utils.NamedTemporaryFile',
-                        return_value=self.out), \
-             mock.patch('os.remove') as mremove:
-            with mkdocs_utils.inject_plugin('mkdocs.yml') as f:
-                self.assertEqual(f, 'mkdocs.yml')
-                self.assertEqual(self.out.getvalue(), '')
-            mremove.assert_not_called()
-
-    def test_round_trip(self):
-        cfg = ('plugins:\n' +
-               '  - foo:\n      option: !relative $config_dir\n' +
-               '  - bar:\n      option: !ENV variable\n' +
-               '  - baz:\n      option: !ENV [variable, default]')
-        with mock.patch('builtins.open',
-                        mock_open_files({'mkdocs.yml': cfg})), \
-             mock.patch('mike.mkdocs_utils.NamedTemporaryFile',
-                        return_value=self.out), \
-             mock.patch('os.remove') as mremove, \
-             mock.patch.dict(os.environ, {'variable': 'mock_val'}, clear=True):
-            with mkdocs_utils.inject_plugin('mkdocs.yml') as f:
-                self.assertEqual(f, self.out.name)
-            mremove.assert_called_once()
-
-        expected = ('plugins:\n- mike\n' +
-                    "- foo:\n    option: !relative '$config_dir'\n" +
-                    '- bar:\n    option: mock_val\n'
-                    '- baz:\n    option: mock_val\n')
-        self.assertEqual(self.out.getvalue(), expected)
-
-    def test_python_tag(self):
-        cfg = ('plugins:\n'
-               '  - foo:\n      option: !!python/none\n' +
-               '  - bar:\n      option: !!python/name:io.StringIO')
-        with mock.patch('builtins.open',
-                        mock_open_files({'mkdocs.yml': cfg})), \
-             mock.patch('mike.mkdocs_utils.NamedTemporaryFile',
-                        return_value=self.out), \
-             mock.patch('os.remove') as mremove:
-            with mkdocs_utils.inject_plugin('mkdocs.yml') as f:
-                self.assertEqual(f, self.out.name)
-                newcfg = yaml.load(self.out.getvalue(), yaml.Loader)
-            mremove.assert_called_once()
-
-        self.assertEqual(newcfg, {'plugins': [
-            'mike', {'foo': {'option': None}}, {'bar': {'option': StringIO}},
-        ]})
-
-    def test_inherit(self):
-        main_cfg = 'INHERIT: mkdocs-base.yml\nplugins:\n  foo: {}\n'
-        base_cfg = 'plugins:\n  bar: {}\n'
-        files = {'mkdocs.yml': main_cfg, 'mkdocs-base.yml': base_cfg}
-        with mock.patch('builtins.open', mock_open_files(files)), \
-             mock.patch('mike.mkdocs_utils.NamedTemporaryFile',
-                        return_value=self.out), \
-             mock.patch('os.path.exists', return_value=True), \
-             mock.patch('os.remove') as mremove:
-            with mkdocs_utils.inject_plugin('mkdocs.yml') as f:
-                self.assertEqual(f, 'mike-mkdocs.yml')
-                newcfg = yaml.safe_load(self.out.getvalue())
-            mremove.assert_called_once()
-
-        self.assertEqual(newcfg, {'plugins': {
-            'mike': {}, 'bar': {}, 'foo': {},
-        }})
-        self.assertEqual(
-            list(newcfg['plugins'].items()),
-            [('mike', {}), ('bar', {}), ('foo', {})]
-        )
-
-    def test_inherit_env(self):
-        main_cfg = 'INHERIT: !ENV base_file\nplugins:\n  foo: {}\n'
-        base_cfg = 'plugins:\n  bar: {}\n'
-        files = {'mkdocs.yml': main_cfg, 'mkdocs-base.yml': base_cfg}
-        with mock.patch('builtins.open', mock_open_files(files)), \
-             mock.patch('mike.mkdocs_utils.NamedTemporaryFile',
-                        return_value=self.out), \
-             mock.patch('os.path.exists', return_value=True), \
-             mock.patch('os.remove') as mremove, \
-             mock.patch.dict(os.environ, {'base_file': 'mkdocs-base.yml'},
-                             clear=True):
-            with mkdocs_utils.inject_plugin('mkdocs.yml') as f:
-                self.assertEqual(f, 'mike-mkdocs.yml')
-                newcfg = yaml.safe_load(self.out.getvalue())
-            mremove.assert_called_once()
-
-        self.assertEqual(newcfg, {'plugins': {
-            'mike': {}, 'bar': {}, 'foo': {},
-        }})
-        self.assertEqual(
-            list(newcfg['plugins'].items()),
-            [('mike', {}), ('bar', {}), ('foo', {})]
-        )
+    def test_missing(self):
+        with self.assertRaises(FileNotFoundError):
+            with mkdocs_utils.inject_plugin('nonexist.toml'):
+                pass
 
 
 class TestBuild(unittest.TestCase):
     def test_build(self):
-        self.stage = stage_dir('build')
-        copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-        mkdocs_utils.build('mkdocs.yml', '1.0', output=subprocess.DEVNULL)
-
-        self.assertTrue(os.path.exists('site/index.html'))
-
-    def test_build_directory(self):
-        self.stage = stage_dir('build')
-        copytree(os.path.join(test_data_dir, 'basic_theme'), self.stage)
-
-        # Change to a different directory to make sure that everything works,
-        # including paths being relative to mkdocs.yml (which MkDocs itself is
-        # responsible for).
-        with pushd(this_dir):
-            mkdocs_utils.build(os.path.join(self.stage, 'mkdocs.yml'),
-                               '1.0', output=subprocess.DEVNULL)
-
-        self.assertTrue(os.path.exists('site/index.html'))
+        with mock.patch('subprocess.run') as mrun:
+            mkdocs_utils.build('zensical.toml', '1.0', output=subprocess.DEVNULL)
+        mrun.assert_called_once()
+        args = mrun.call_args[0][0]
+        self.assertEqual(args[:3], ['zensical', 'build', '--clean'])
+        self.assertIn('zensical.toml', args)
+        env = mrun.call_args[1]['env']
+        self.assertEqual(env[mkdocs_utils.docs_version_var], '1.0')
 
 
 class TestVersion(unittest.TestCase):

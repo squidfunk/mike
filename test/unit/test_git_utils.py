@@ -68,7 +68,7 @@ class TestGetLatestCommit(unittest.TestCase):
     def test_short(self):
         rev = git_utils.get_latest_commit('master', short=True)
         expected_rev = check_output(['git', 'rev-parse', 'master']).rstrip()
-        self.assertEqual(rev, expected_rev[0:len(rev)])
+        self.assertEqual(rev, expected_rev[0 : len(rev)])
 
     def test_nonexistent_branch(self):
         with self.assertRaises(git_utils.GitError):
@@ -107,8 +107,9 @@ class TestGetRef(unittest.TestCase):
         self.assertRaises(git_utils.GitError, git_utils.get_ref, 'nonexist')
 
     def test_allow_nonexistent_branch(self):
-        self.assertEqual(git_utils.get_ref('nonexist', nonexist_ok=True),
-                         'refs/heads/nonexist')
+        self.assertEqual(
+            git_utils.get_ref('nonexist', nonexist_ok=True), 'refs/heads/nonexist'
+        )
 
 
 class TestUpdateRef(unittest.TestCase):
@@ -149,8 +150,9 @@ class TestUpdateRef(unittest.TestCase):
 
     def test_nonexistent_ref(self):
         rev = git_utils.get_latest_commit('branch')
-        self.assertRaises(git_utils.GitError, git_utils.update_ref,
-                          'branch', 'nonexist')
+        self.assertRaises(
+            git_utils.GitError, git_utils.update_ref, 'branch', 'nonexist'
+        )
         self.assertEqual(git_utils.get_latest_commit('branch'), rev)
 
 
@@ -164,16 +166,18 @@ class TestGetMergeBaseAndCompareBranches(unittest.TestCase):
     def test_even(self):
         rev = git_utils.get_latest_commit('master')
         self.assertEqual(git_utils.get_merge_base('branch', 'master'), rev)
-        self.assertEqual(git_utils.compare_branches('branch', 'master'),
-                         git_utils.BranchStatus.even)
+        self.assertEqual(
+            git_utils.compare_branches('branch', 'master'), git_utils.BranchStatus.even
+        )
 
     def test_ahead(self):
         rev = git_utils.get_latest_commit('master')
         commit_files(['file2.txt'], 'second commit')
 
         self.assertEqual(git_utils.get_merge_base('branch', 'master'), rev)
-        self.assertEqual(git_utils.compare_branches('branch', 'master'),
-                         git_utils.BranchStatus.ahead)
+        self.assertEqual(
+            git_utils.compare_branches('branch', 'master'), git_utils.BranchStatus.ahead
+        )
 
     def test_behind(self):
         rev = git_utils.get_latest_commit('master')
@@ -181,8 +185,10 @@ class TestGetMergeBaseAndCompareBranches(unittest.TestCase):
         commit_files(['file2.txt'], 'second commit')
 
         self.assertEqual(git_utils.get_merge_base('branch', 'master'), rev)
-        self.assertEqual(git_utils.compare_branches('branch', 'master'),
-                         git_utils.BranchStatus.behind)
+        self.assertEqual(
+            git_utils.compare_branches('branch', 'master'),
+            git_utils.BranchStatus.behind,
+        )
 
     def test_diverged(self):
         rev = git_utils.get_latest_commit('master')
@@ -191,21 +197,26 @@ class TestGetMergeBaseAndCompareBranches(unittest.TestCase):
         commit_files(['file2-master.txt'], 'second commit')
 
         self.assertEqual(git_utils.get_merge_base('master', 'branch'), rev)
-        self.assertEqual(git_utils.compare_branches('master', 'branch'),
-                         git_utils.BranchStatus.diverged)
+        self.assertEqual(
+            git_utils.compare_branches('master', 'branch'),
+            git_utils.BranchStatus.diverged,
+        )
 
     def test_unrelated(self):
         check_call_silent(['git', 'checkout', '--orphan', 'orphan'])
         commit_files(['file-unrelated.txt'], 'new commit')
 
-        self.assertRaises(git_utils.GitRevUnrelated, git_utils.get_merge_base,
-                          'master', 'orphan')
-        self.assertRaises(git_utils.GitRevUnrelated,
-                          git_utils.compare_branches, 'master', 'orphan')
+        self.assertRaises(
+            git_utils.GitRevUnrelated, git_utils.get_merge_base, 'master', 'orphan'
+        )
+        self.assertRaises(
+            git_utils.GitRevUnrelated, git_utils.compare_branches, 'master', 'orphan'
+        )
 
     def test_nonexistent_branch(self):
-        self.assertRaises(git_utils.GitError, git_utils.get_merge_base,
-                          'nonexist', 'nonexist')
+        self.assertRaises(
+            git_utils.GitError, git_utils.get_merge_base, 'nonexist', 'nonexist'
+        )
 
 
 class TestUpdateFromUpstream(unittest.TestCase):
@@ -252,8 +263,12 @@ class TestUpdateFromUpstream(unittest.TestCase):
             commit_files(['file2-origin.txt'], 'add file2')
         check_call_silent(['git', 'fetch', 'origin'])
 
-        self.assertRaises(git_utils.GitBranchDiverged,
-                          git_utils.update_from_upstream, 'origin', 'master')
+        self.assertRaises(
+            git_utils.GitBranchDiverged,
+            git_utils.update_from_upstream,
+            'origin',
+            'master',
+        )
         new_rev = git_utils.get_latest_commit('master')
         self.assertEqual(old_rev, new_rev)
 
@@ -280,8 +295,7 @@ class TestPushBranch(unittest.TestCase):
     def setUp(self):
         self.origin = stage_dir('update_branch_origin')
         git_init()
-        check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
-                           'ignore'])
+        check_call_silent(['git', 'config', 'receive.denyCurrentBranch', 'ignore'])
         commit_files(['file.txt'], 'initial commit')
 
         self.stage = stage_dir('update_branch')
@@ -302,8 +316,7 @@ class TestPushBranch(unittest.TestCase):
             commit_files(['file2.txt'], 'add file2')
 
         commit_files(['file2.txt'], 'add file2 from clone')
-        self.assertRaises(git_utils.GitError, git_utils.push_branch, 'origin',
-                          'master')
+        self.assertRaises(git_utils.GitError, git_utils.push_branch, 'origin', 'master')
 
 
 class TestDeleteBranch(unittest.TestCase):
@@ -377,15 +390,17 @@ class TestDeleteLatestCommit(unittest.TestCase):
 class TestFileInfo(unittest.TestCase):
     def test_copy(self):
         f = git_utils.FileInfo(os.path.join('dir', 'file.txt'), '')
-        self.assertEqual(f.copy('destdir'), git_utils.FileInfo(
-            os.path.join('destdir', 'dir', 'file.txt'), ''
-        ))
+        self.assertEqual(
+            f.copy('destdir'),
+            git_utils.FileInfo(os.path.join('destdir', 'dir', 'file.txt'), ''),
+        )
 
     def test_copy_start(self):
         f = git_utils.FileInfo(os.path.join('dir', 'file.txt'), '')
-        self.assertEqual(f.copy('destdir', 'dir'), git_utils.FileInfo(
-            os.path.join('destdir', 'file.txt'), ''
-        ))
+        self.assertEqual(
+            f.copy('destdir', 'dir'),
+            git_utils.FileInfo(os.path.join('destdir', 'file.txt'), ''),
+        )
 
 
 class TestCommit(unittest.TestCase):
@@ -411,8 +426,7 @@ class TestCommit(unittest.TestCase):
         with open('file.txt', encoding='utf-8') as f:
             self.assertEqual(f.read(), 'レッサーパンダ')
 
-    @unittest.skipIf(sys.platform == 'win32',
-                     "oddly-named files don't work on windows")
+    @unittest.skipIf(sys.platform == 'win32', "oddly-named files don't work on windows")
     def test_add_file_escaped_name(self):
         self._add_file('my "file".txt')
         check_call_silent(['git', 'checkout', 'master'])
@@ -485,9 +499,7 @@ class TestCommit(unittest.TestCase):
 
     def test_context_already_finished(self):
         with git_utils.Commit('master', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
             commit.finish()
 
         check_call_silent(['git', 'checkout', 'master'])
@@ -497,9 +509,7 @@ class TestCommit(unittest.TestCase):
         self._add_file('file.txt')
         try:
             with git_utils.Commit('master', 'add file') as commit:
-                commit.add_file(git_utils.FileInfo(
-                    'file2.txt', 'this is some text'
-                ))
+                commit.add_file(git_utils.FileInfo('file2.txt', 'this is some text'))
                 raise ValueError('bad')
         except ValueError:
             pass
@@ -611,25 +621,21 @@ class TestRealPath(unittest.TestCase):
         os.chdir(self.stage)
         git_init()
         with git_utils.Commit('branch', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'dir/file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('dir/file.txt', 'this is some text'))
             commit.add_file(git_utils.FileInfo('link', 'dir', mode=0o120000))
-            commit.add_file(git_utils.FileInfo('link.txt', 'dir/file.txt',
-                                               mode=0o120000))
+            commit.add_file(
+                git_utils.FileInfo('link.txt', 'dir/file.txt', mode=0o120000)
+            )
 
     def test_real_file(self):
-        self.assertEqual(git_utils.real_path('branch', 'dir/file.txt'),
-                         'dir/file.txt')
+        self.assertEqual(git_utils.real_path('branch', 'dir/file.txt'), 'dir/file.txt')
 
     def test_real_directory(self):
         self.assertEqual(git_utils.real_path('branch', 'dir'), 'dir')
 
     def test_symlink_file(self):
-        self.assertEqual(git_utils.real_path('branch', 'link/file.txt'),
-                         'dir/file.txt')
-        self.assertEqual(git_utils.real_path('branch', 'link.txt'),
-                         'dir/file.txt')
+        self.assertEqual(git_utils.real_path('branch', 'link/file.txt'), 'dir/file.txt')
+        self.assertEqual(git_utils.real_path('branch', 'link.txt'), 'dir/file.txt')
 
     def test_symlink_directory(self):
         self.assertEqual(git_utils.real_path('branch', 'link'), 'dir')
@@ -641,24 +647,21 @@ class TestFileMode(unittest.TestCase):
         os.chdir(self.stage)
         git_init()
         with git_utils.Commit('branch', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'dir/file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('dir/file.txt', 'this is some text'))
             commit.add_file(git_utils.FileInfo('link', 'dir', mode=0o120000))
-            commit.add_file(git_utils.FileInfo('link.txt', 'dir/file.txt',
-                                               mode=0o120000))
+            commit.add_file(
+                git_utils.FileInfo('link.txt', 'dir/file.txt', mode=0o120000)
+            )
 
     def test_file_mode(self):
-        self.assertEqual(git_utils.file_mode('branch', 'dir/file.txt'),
-                         0o100644)
+        self.assertEqual(git_utils.file_mode('branch', 'dir/file.txt'), 0o100644)
 
     def test_directory_mode(self):
         self.assertEqual(git_utils.file_mode('branch', 'dir'), 0o040000)
         self.assertEqual(git_utils.file_mode('branch', 'dir/'), 0o040000)
 
     def test_symlink_file_mode(self):
-        self.assertEqual(git_utils.file_mode('branch', 'link/file.txt'),
-                         0o100644)
+        self.assertEqual(git_utils.file_mode('branch', 'link/file.txt'), 0o100644)
         self.assertEqual(git_utils.file_mode('branch', 'link.txt'), 0o100644)
 
     def test_symlink_directory_mode(self):
@@ -666,25 +669,32 @@ class TestFileMode(unittest.TestCase):
         self.assertEqual(git_utils.file_mode('branch', 'link/'), 0o040000)
 
     def tset_symlink_mode_nofollow(self):
-        self.assertEqual(git_utils.file_mode('branch', 'link',
-                                             follow_symlinks=False),
-                         0o120000)
-        self.assertEqual(git_utils.file_mode('branch', 'link.txt',
-                                             follow_symlinks=False),
-                         0o120000)
-        self.assertRaises(git_utils.GitError, git_utils.file_mode,
-                          'branch', 'link/file.txt', follow_symlinks=False)
+        self.assertEqual(
+            git_utils.file_mode('branch', 'link', follow_symlinks=False), 0o120000
+        )
+        self.assertEqual(
+            git_utils.file_mode('branch', 'link.txt', follow_symlinks=False), 0o120000
+        )
+        self.assertRaises(
+            git_utils.GitError,
+            git_utils.file_mode,
+            'branch',
+            'link/file.txt',
+            follow_symlinks=False,
+        )
 
     def test_root_mode(self):
         self.assertEqual(git_utils.file_mode('branch', ''), 0o040000)
 
     def test_nonexistent_file(self):
-        self.assertRaises(git_utils.GitError, git_utils.file_mode, 'branch',
-                          'nonexist.txt')
+        self.assertRaises(
+            git_utils.GitError, git_utils.file_mode, 'branch', 'nonexist.txt'
+        )
 
     def test_nonexistent_branch(self):
-        self.assertRaises(git_utils.GitError, git_utils.file_mode, 'nonexist',
-                          'dir/file.txt')
+        self.assertRaises(
+            git_utils.GitError, git_utils.file_mode, 'nonexist', 'dir/file.txt'
+        )
 
 
 class TestReadFile(unittest.TestCase):
@@ -693,45 +703,56 @@ class TestReadFile(unittest.TestCase):
         os.chdir(self.stage)
         git_init()
         with git_utils.Commit('branch', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'dir/file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('dir/file.txt', 'this is some text'))
             commit.add_file(git_utils.FileInfo('link', 'dir', mode=0o120000))
-            commit.add_file(git_utils.FileInfo('link.txt', 'dir/file.txt',
-                                               mode=0o120000))
+            commit.add_file(
+                git_utils.FileInfo('link.txt', 'dir/file.txt', mode=0o120000)
+            )
 
     def test_read_file(self):
-        self.assertEqual(git_utils.read_file('branch', 'dir/file.txt'),
-                         b'this is some text')
+        self.assertEqual(
+            git_utils.read_file('branch', 'dir/file.txt'), b'this is some text'
+        )
 
     def test_read_file_as_text(self):
-        self.assertEqual(git_utils.read_file('branch', 'dir/file.txt',
-                                             universal_newlines=True),
-                         'this is some text')
+        self.assertEqual(
+            git_utils.read_file('branch', 'dir/file.txt', universal_newlines=True),
+            'this is some text',
+        )
 
     def test_read_symlink(self):
-        self.assertEqual(git_utils.read_file('branch', 'link/file.txt'),
-                         b'this is some text')
-        self.assertEqual(git_utils.read_file('branch', 'link.txt'),
-                         b'this is some text')
+        self.assertEqual(
+            git_utils.read_file('branch', 'link/file.txt'), b'this is some text'
+        )
+        self.assertEqual(
+            git_utils.read_file('branch', 'link.txt'), b'this is some text'
+        )
 
     def test_read_symlink_nofollow(self):
-        self.assertEqual(git_utils.read_file('branch', 'link',
-                                             follow_symlinks=False),
-                         b'dir')
-        self.assertEqual(git_utils.read_file('branch', 'link.txt',
-                                             follow_symlinks=False),
-                         b'dir/file.txt')
+        self.assertEqual(
+            git_utils.read_file('branch', 'link', follow_symlinks=False), b'dir'
+        )
+        self.assertEqual(
+            git_utils.read_file('branch', 'link.txt', follow_symlinks=False),
+            b'dir/file.txt',
+        )
 
     def test_nonexistent_file(self):
-        self.assertRaises(git_utils.GitError, git_utils.read_file, 'branch',
-                          'nonexist.txt')
-        self.assertRaises(git_utils.GitError, git_utils.read_file, 'branch',
-                          'nonexist.txt', follow_symlinks=False)
+        self.assertRaises(
+            git_utils.GitError, git_utils.read_file, 'branch', 'nonexist.txt'
+        )
+        self.assertRaises(
+            git_utils.GitError,
+            git_utils.read_file,
+            'branch',
+            'nonexist.txt',
+            follow_symlinks=False,
+        )
 
     def test_nonexistent_branch(self):
-        self.assertRaises(git_utils.GitError, git_utils.read_file, 'nonexist',
-                          'dir/file.txt')
+        self.assertRaises(
+            git_utils.GitError, git_utils.read_file, 'nonexist', 'dir/file.txt'
+        )
 
 
 class TestWalkFiles(unittest.TestCase):
@@ -743,48 +764,58 @@ class TestWalkFiles(unittest.TestCase):
 
         with git_utils.Commit('branch', 'add file') as commit:
             commit.add_file(git_utils.FileInfo('file.txt', b'text'))
-            commit.add_file(git_utils.FileInfo(
-                os.path.join('dir/file.txt'), b'more text'
-            ))
-            commit.add_file(git_utils.FileInfo(
-                os.path.join('dir', 'file 2.txt'), b'more text'
-            ))
-            commit.add_file(git_utils.FileInfo(
-                os.path.join('dir', 'subdir', 'file 3.txt'),
-                b'even more text'
-            ))
+            commit.add_file(
+                git_utils.FileInfo(os.path.join('dir/file.txt'), b'more text')
+            )
+            commit.add_file(
+                git_utils.FileInfo(os.path.join('dir', 'file 2.txt'), b'more text')
+            )
+            commit.add_file(
+                git_utils.FileInfo(
+                    os.path.join('dir', 'subdir', 'file 3.txt'), b'even more text'
+                )
+            )
 
     def test_root(self):
-        files = sorted(git_utils.walk_files('branch'),
-                       key=lambda x: x.path)
-        self.assertEqual(files, [
-            git_utils.FileInfo(os.path.join('dir', 'file 2.txt'),
-                               b'more text'),
-            git_utils.FileInfo(os.path.join('dir', 'file.txt'), b'more text'),
-            git_utils.FileInfo(os.path.join('dir', 'subdir', 'file 3.txt'),
-                               b'even more text'),
-            git_utils.FileInfo('file.txt', b'text'),
-        ])
+        files = sorted(git_utils.walk_files('branch'), key=lambda x: x.path)
+        self.assertEqual(
+            files,
+            [
+                git_utils.FileInfo(os.path.join('dir', 'file 2.txt'), b'more text'),
+                git_utils.FileInfo(os.path.join('dir', 'file.txt'), b'more text'),
+                git_utils.FileInfo(
+                    os.path.join('dir', 'subdir', 'file 3.txt'), b'even more text'
+                ),
+                git_utils.FileInfo('file.txt', b'text'),
+            ],
+        )
 
     def test_dir(self):
-        files = sorted(git_utils.walk_files('branch', 'dir'),
-                       key=lambda x: x.path)
-        self.assertEqual(files, [
-            git_utils.FileInfo(os.path.join('dir', 'file 2.txt'),
-                               b'more text'),
-            git_utils.FileInfo(os.path.join('dir', 'file.txt'), b'more text'),
-            git_utils.FileInfo(os.path.join('dir', 'subdir', 'file 3.txt'),
-                               b'even more text'),
-        ])
+        files = sorted(git_utils.walk_files('branch', 'dir'), key=lambda x: x.path)
+        self.assertEqual(
+            files,
+            [
+                git_utils.FileInfo(os.path.join('dir', 'file 2.txt'), b'more text'),
+                git_utils.FileInfo(os.path.join('dir', 'file.txt'), b'more text'),
+                git_utils.FileInfo(
+                    os.path.join('dir', 'subdir', 'file 3.txt'), b'even more text'
+                ),
+            ],
+        )
 
     def test_subdir(self):
-        files = sorted(git_utils.walk_files(
-            'branch', os.path.join('dir', 'subdir')
-        ), key=lambda x: x.path)
-        self.assertEqual(files, [
-            git_utils.FileInfo(os.path.join('dir', 'subdir', 'file 3.txt'),
-                               b'even more text'),
-        ])
+        files = sorted(
+            git_utils.walk_files('branch', os.path.join('dir', 'subdir')),
+            key=lambda x: x.path,
+        )
+        self.assertEqual(
+            files,
+            [
+                git_utils.FileInfo(
+                    os.path.join('dir', 'subdir', 'file 3.txt'), b'even more text'
+                ),
+            ],
+        )
 
     def test_nonexistent(self):
         with self.assertRaises(git_utils.GitError):
@@ -800,8 +831,7 @@ class TestWalkRealFiles(unittest.TestCase):
         self.directory = os.path.join(test_data_dir, 'directory')
 
     def test_walk(self):
-        files = sorted(git_utils.walk_real_files(self.directory),
-                       key=lambda x: x.path)
+        files = sorted(git_utils.walk_real_files(self.directory), key=lambda x: x.path)
 
         path = os.path.join(self.directory, 'file.txt')
         with open(path, 'rb') as f:

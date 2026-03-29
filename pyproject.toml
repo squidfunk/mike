@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mike"
+dynamic = ["version"]
+description = "Manage multiple versions of your Zensical-powered documentation"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE"}
+keywords = ["zensical", "multiple versions"]
+authors = [
+    {name = "Jim Porter", email = "itsjimporter@gmail.com"},
+    {name = "Zensical", email = "contributors@zensical.org"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Documentation",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "jinja2 >= 2.7",
+    "pyparsing >= 3.0",
+    "verspec",
+    "zensical >= 0.0.30",
+]
+
+[project.optional-dependencies]
+dev = ["ruff", "shtab"]
+
+[project.scripts]
+mike = "mike.driver:main"
+
+[project.urls]
+Homepage = "https://github.com/jimporter/mike"
+
+[tool.hatch.version]
+source = "code"
+path = "mike/app_version.py"
+expression = "version"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mike"]
+
+
+[tool.ruff]
+line-length = 88
+extend-exclude = ["build", "dist", "deb_dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "Q"]
+ignore = ["E201", "E202", "F403", "F405"]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.format]
+quote-style = "single"
