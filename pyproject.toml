@@ -5,10 +5,10 @@ build-backend = "hatchling.build"
 [project]
 name = "mike"
 dynamic = ["version"]
-description = "Manage multiple versions of your MkDocs-powered documentation"
+description = "Manage multiple versions of your Zensical-powered documentation"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {file = "LICENSE"}
-keywords = ["mkdocs", "multiple versions"]
+keywords = ["zensical", "multiple versions"]
 authors = [{name = "Jim Porter", email = "itsjimporter@gmail.com"}]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
