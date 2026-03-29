@@ -116,7 +116,7 @@ class TestDeploy(TestBase):
         if not expected_message:
             rev = git_utils.get_latest_commit('master', short=True)
             expected_message = (
-                r'^Deployed {} to {}( in .*)? with MkDocs \S+ and mike \S+$'.format(
+                r'^Deployed {} to {}( in .*)? with Zensical \S+ and mike \S+$'.format(
                     re.escape(rev), re.escape(str(expected_versions[0].version))
                 )
             )

@@ -22,7 +22,7 @@ class DeployTestCase(unittest.TestCase):
         else:
             self.assertRegex(
                 message,
-                r'^Deployed {} to {}( in .*)? with MkDocs \S+ and mike \S+$'.format(
+                r'^Deployed {} to {}( in .*)? with Zensical \S+ and mike \S+$'.format(
                     rev, expected_versions[0].version
                 ),
             )
