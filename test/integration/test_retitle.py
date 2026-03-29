@@ -20,19 +20,25 @@ class RetitleTestCase(unittest.TestCase):
             self.assertEqual(message, expected_message)
         else:
             self.assertRegex(
-                message,
-                r'^Set title of \S+ to 1\.0\.1( in .*)? with mike \S+$'
+                message, r'^Set title of \S+ to 1\.0\.1( in .*)? with mike \S+$'
             )
 
-        assertDirectory(directory, {
-            'versions.json',
-            '1.0/index.html',
-        }, allow_extra=True)
+        assertDirectory(
+            directory,
+            {
+                'versions.json',
+                '1.0/index.html',
+            },
+            allow_extra=True,
+        )
 
         with open(os.path.join(directory, 'versions.json')) as f:
-            self.assertEqual(list(versions.Versions.loads(f.read())), [
-                versions.VersionInfo('1.0', '1.0.1'),
-            ])
+            self.assertEqual(
+                list(versions.Versions.loads(f.read())),
+                [
+                    versions.VersionInfo('1.0', '1.0.1'),
+                ],
+            )
 
 
 class TestRetitle(RetitleTestCase):
@@ -60,8 +66,7 @@ class TestRetitle(RetitleTestCase):
         os.mkdir('sub')
         with pushd('sub'):
             assertPopen(['mike', 'retitle', '1.0', '1.0.1'], returncode=1)
-            assertPopen(['mike', 'retitle', '1.0', '1.0.1', '-F',
-                         '../zensical.toml'])
+            assertPopen(['mike', 'retitle', '1.0', '1.0.1', '-F', '../zensical.toml'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_retitle()
 
@@ -69,29 +74,27 @@ class TestRetitle(RetitleTestCase):
         self._deploy()
         os.mkdir('sub')
         with pushd('sub'):
-            assertPopen(['mike', 'retitle', '1.0', '1.0.1', '-b', 'gh-pages',
-                         '-r', 'origin'])
+            assertPopen(
+                ['mike', 'retitle', '1.0', '1.0.1', '-b', 'gh-pages', '-r', 'origin']
+            )
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_retitle()
 
     def test_commit_message(self):
         self._deploy()
-        assertPopen(['mike', 'retitle', '1.0', '1.0.1', '-m',
-                     'commit message'])
+        assertPopen(['mike', 'retitle', '1.0', '1.0.1', '-m', 'commit message'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_retitle('commit message')
 
     def test_deploy_prefix(self):
         self._deploy(deploy_prefix='prefix')
-        assertPopen(['mike', 'retitle', '1.0', '1.0.1', '--deploy-prefix',
-                     'prefix'])
+        assertPopen(['mike', 'retitle', '1.0', '1.0.1', '--deploy-prefix', 'prefix'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
         self._test_retitle(directory='prefix')
 
     def test_push(self):
         self._deploy()
-        check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
-                           'ignore'])
+        check_call_silent(['git', 'config', 'receive.denyCurrentBranch', 'ignore'])
         stage_dir('retitle_clone')
         check_call_silent(['git', 'clone', self.stage, '.'])
         git_config()
@@ -173,16 +176,19 @@ class TestRetitle(RetitleTestCase):
         check_call_silent(['git', 'fetch', 'origin'])
 
         assertOutput(
-            self, ['mike', 'retitle', '1.0', '1.0.1'], stdout='', stderr=(
-                'error: gh-pages has diverged from origin/gh-pages\n' +
-                "  If you're sure this is intended, retry with " +
-                '--ignore-remote-status\n'
-            ), returncode=1
+            self,
+            ['mike', 'retitle', '1.0', '1.0.1'],
+            stdout='',
+            stderr=(
+                'error: gh-pages has diverged from origin/gh-pages\n'
+                + "  If you're sure this is intended, retry with "
+                + '--ignore-remote-status\n'
+            ),
+            returncode=1,
         )
         self.assertEqual(git_utils.get_latest_commit('gh-pages'), clone_rev)
 
-        assertPopen(['mike', 'retitle', '--ignore-remote-status', '1.0',
-                     '1.0.1'])
+        assertPopen(['mike', 'retitle', '--ignore-remote-status', '1.0', '1.0.1'])
         self.assertEqual(git_utils.get_latest_commit('gh-pages^'), clone_rev)
 
 
@@ -193,8 +199,7 @@ class TestRetitleOtherRemote(RetitleTestCase):
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
         check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
-        check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
-                           'ignore'])
+        check_call_silent(['git', 'config', 'receive.denyCurrentBranch', 'ignore'])
 
     def _clone(self):
         self.stage = stage_dir('retitle_remote_clone')

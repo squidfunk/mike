@@ -39,9 +39,10 @@ field = (identifier | string).set_parse_action(lambda t: t[0])
 subfield = pp.Suppress('.') + field
 subscript = pp.Suppress('[') + (index | string) + pp.Suppress(']')
 
-expr = (((field | subscript) + (subfield | subscript)[...]) |
-        pp.empty).set_parse_action(lambda t: [t.as_list()])
-set_expr = (expr + pp.Suppress('=') + pp.Regex('.*'))
+expr = (
+    ((field | subscript) + (subfield | subscript)[...]) | pp.empty
+).set_parse_action(lambda t: [t.as_list()])
+set_expr = expr + pp.Suppress('=') + pp.Regex('.*')
 
 
 def parse(expression):
@@ -56,8 +57,9 @@ def _check_step(data, step):
     if not isinstance(step, (str, int)):  # pragma: no cover
         raise TypeError('invalid step {!r}'.format(step))
 
-    if ( (isinstance(step, str) and not isinstance(data, dict)) or
-         (isinstance(step, int) and not isinstance(data, list)) ):
+    if (isinstance(step, str) and not isinstance(data, dict)) or (
+        isinstance(step, int) and not isinstance(data, list)
+    ):
         raise TypeError('incompatible type for step {!r}'.format(step))
 
 

@@ -8,9 +8,13 @@ from mike.commands import AliasType
 
 
 class DeployTestCase(unittest.TestCase):
-    def _test_deploy(self, expected_message=None,
-                     expected_versions=[versions.VersionInfo('1.0')],
-                     alias_type=AliasType.symlink, directory='.'):
+    def _test_deploy(
+        self,
+        expected_message=None,
+        expected_versions=[versions.VersionInfo('1.0')],
+        alias_type=AliasType.symlink,
+        directory='.',
+    ):
         rev = git_utils.get_latest_commit('master', short=True)
         message = assertPopen(['git', 'log', '-1', '--pretty=%B']).rstrip()
         if expected_message:
@@ -18,8 +22,9 @@ class DeployTestCase(unittest.TestCase):
         else:
             self.assertRegex(
                 message,
-                r'^Deployed {} to {}( in .*)? with MkDocs \S+ and mike \S+$'
-                .format(rev, expected_versions[0].version)
+                r'^Deployed {} to {}( in .*)? with MkDocs \S+ and mike \S+$'.format(
+                    rev, expected_versions[0].version
+                ),
             )
 
         files = {'versions.json'}
@@ -33,8 +38,7 @@ class DeployTestCase(unittest.TestCase):
         assertDirectory(directory, files, allow_extra=True)
 
         with open(os.path.join(directory, 'versions.json')) as f:
-            self.assertEqual(list(versions.Versions.loads(f.read())),
-                             expected_versions)
+            self.assertEqual(list(versions.Versions.loads(f.read())), expected_versions)
 
 
 class TestDeploy(DeployTestCase):
@@ -53,38 +57,47 @@ class TestDeploy(DeployTestCase):
     def test_title(self):
         assertPopen(['mike', 'deploy', '1.0', '-t', '1.0.0'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(expected_versions=[
-            versions.VersionInfo('1.0', '1.0.0')
-        ])
+        self._test_deploy(expected_versions=[versions.VersionInfo('1.0', '1.0.0')])
 
     def test_aliases(self):
         assertPopen(['mike', 'deploy', '1.0', 'latest'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(expected_versions=[
-            versions.VersionInfo('1.0', aliases=['latest'])
-        ])
+        self._test_deploy(
+            expected_versions=[versions.VersionInfo('1.0', aliases=['latest'])]
+        )
         self.assertTrue(os.path.islink('latest'))
-        self.assertEqual(os.path.normcase(os.path.realpath('latest')),
-                         os.path.normcase(os.path.abspath('1.0')))
+        self.assertEqual(
+            os.path.normcase(os.path.realpath('latest')),
+            os.path.normcase(os.path.abspath('1.0')),
+        )
 
     def test_aliases_redirect(self):
-        assertPopen(['mike', 'deploy', '1.0', 'latest',
-                     '--alias-type=redirect'])
+        assertPopen(['mike', 'deploy', '1.0', 'latest', '--alias-type=redirect'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(expected_versions=[
-            versions.VersionInfo('1.0', aliases=['latest'])
-        ], alias_type=AliasType.redirect)
+        self._test_deploy(
+            expected_versions=[versions.VersionInfo('1.0', aliases=['latest'])],
+            alias_type=AliasType.redirect,
+        )
         with open('latest/index.html') as f:
             self.assertRegex(f.read(), match_redir('../1.0/'))
 
     def test_aliases_custom_redirect(self):
-        assertPopen(['mike', 'deploy', '1.0', 'latest',
-                     '--alias-type=redirect', '-T',
-                     os.path.join(test_data_dir, 'template.html')])
+        assertPopen(
+            [
+                'mike',
+                'deploy',
+                '1.0',
+                'latest',
+                '--alias-type=redirect',
+                '-T',
+                os.path.join(test_data_dir, 'template.html'),
+            ]
+        )
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(expected_versions=[
-            versions.VersionInfo('1.0', aliases=['latest'])
-        ], alias_type=AliasType.redirect)
+        self._test_deploy(
+            expected_versions=[versions.VersionInfo('1.0', aliases=['latest'])],
+            alias_type=AliasType.redirect,
+        )
         check_call_silent(['git', 'checkout', 'gh-pages'])
 
         with open('latest/index.html') as f:
@@ -93,45 +106,63 @@ class TestDeploy(DeployTestCase):
     def test_aliases_copy(self):
         assertPopen(['mike', 'deploy', '1.0', 'latest', '--alias-type=copy'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(expected_versions=[
-            versions.VersionInfo('1.0', aliases=['latest'])
-        ], alias_type=AliasType.copy)
+        self._test_deploy(
+            expected_versions=[versions.VersionInfo('1.0', aliases=['latest'])],
+            alias_type=AliasType.copy,
+        )
 
     def test_props(self):
-        assertPopen(['mike', 'deploy', '1.0',
-                     '--prop-set', 'foo.bar=[1,2,3]',
-                     '--prop-set', 'foo.bar[1]=true',
-                     '--prop-delete', 'foo.bar[0]'])
+        assertPopen(
+            [
+                'mike',
+                'deploy',
+                '1.0',
+                '--prop-set',
+                'foo.bar=[1,2,3]',
+                '--prop-set',
+                'foo.bar[1]=true',
+                '--prop-delete',
+                'foo.bar[0]',
+            ]
+        )
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(expected_versions=[
-            versions.VersionInfo('1.0', properties={'foo': {'bar': [True, 3]}})
-        ])
+        self._test_deploy(
+            expected_versions=[
+                versions.VersionInfo('1.0', properties={'foo': {'bar': [True, 3]}})
+            ]
+        )
 
     def test_update(self):
         assertPopen(['mike', 'deploy', '1.0', 'latest'])
         assertPopen(['mike', 'deploy', '1.0', 'greatest', '-t', '1.0.1'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(expected_versions=[
-            versions.VersionInfo('1.0', '1.0.1', ['latest', 'greatest'])
-        ])
+        self._test_deploy(
+            expected_versions=[
+                versions.VersionInfo('1.0', '1.0.1', ['latest', 'greatest'])
+            ]
+        )
 
     def test_update_aliases(self):
         assertPopen(['mike', 'deploy', '1.0', 'latest'])
         assertPopen(['mike', 'deploy', '2.0', 'latest', '-u'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(expected_versions=[
-            versions.VersionInfo('2.0', aliases=['latest']),
-            versions.VersionInfo('1.0'),
-        ])
+        self._test_deploy(
+            expected_versions=[
+                versions.VersionInfo('2.0', aliases=['latest']),
+                versions.VersionInfo('1.0'),
+            ]
+        )
 
     def test_update_aliases_with_version(self):
         assertPopen(['mike', 'deploy', '1.0b1', '1.0'])
         assertPopen(['mike', 'deploy', '1.0', 'latest', '-u'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
-        self._test_deploy(expected_versions=[
-            versions.VersionInfo('1.0', aliases=['latest']),
-            versions.VersionInfo('1.0b1'),
-        ])
+        self._test_deploy(
+            expected_versions=[
+                versions.VersionInfo('1.0', aliases=['latest']),
+                versions.VersionInfo('1.0b1'),
+            ]
+        )
 
     def test_from_subdir(self):
         os.mkdir('sub')
@@ -157,8 +188,7 @@ class TestDeploy(DeployTestCase):
         self._test_deploy(directory='prefix')
 
     def test_push(self):
-        check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
-                           'ignore'])
+        check_call_silent(['git', 'config', 'receive.denyCurrentBranch', 'ignore'])
         stage_dir('deploy_clone')
         check_call_silent(['git', 'clone', self.stage, '.'])
         git_config()
@@ -167,8 +197,7 @@ class TestDeploy(DeployTestCase):
         clone_rev = git_utils.get_latest_commit('gh-pages')
 
         with pushd(self.stage):
-            self.assertEqual(git_utils.get_latest_commit('gh-pages'),
-                             clone_rev)
+            self.assertEqual(git_utils.get_latest_commit('gh-pages'), clone_rev)
 
     def test_remote_empty(self):
         stage_dir('deploy_clone')
@@ -176,9 +205,7 @@ class TestDeploy(DeployTestCase):
         git_config()
 
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
         old_rev = git_utils.get_latest_commit('gh-pages')
 
         assertPopen(['mike', 'deploy', '1.0'])
@@ -186,9 +213,7 @@ class TestDeploy(DeployTestCase):
 
     def test_local_empty(self):
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
         origin_rev = git_utils.get_latest_commit('gh-pages')
 
         stage_dir('deploy_clone')
@@ -200,9 +225,7 @@ class TestDeploy(DeployTestCase):
 
     def test_ahead_remote(self):
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
         origin_rev = git_utils.get_latest_commit('gh-pages')
 
         stage_dir('deploy_clone')
@@ -211,9 +234,7 @@ class TestDeploy(DeployTestCase):
         git_config()
 
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file2.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file2.txt', 'this is some text'))
         old_rev = git_utils.get_latest_commit('gh-pages')
 
         assertPopen(['mike', 'deploy', '1.0'])
@@ -222,9 +243,7 @@ class TestDeploy(DeployTestCase):
 
     def test_behind_remote(self):
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
 
         stage_dir('deploy_clone')
         check_call_silent(['git', 'clone', self.stage, '.'])
@@ -233,9 +252,7 @@ class TestDeploy(DeployTestCase):
 
         with pushd(self.stage):
             with git_utils.Commit('gh-pages', 'add file') as commit:
-                commit.add_file(git_utils.FileInfo(
-                    'file2.txt', 'this is some text'
-                ))
+                commit.add_file(git_utils.FileInfo('file2.txt', 'this is some text'))
             origin_rev = git_utils.get_latest_commit('gh-pages')
         check_call_silent(['git', 'fetch', 'origin'])
 
@@ -244,33 +261,32 @@ class TestDeploy(DeployTestCase):
 
     def test_diverged_remote(self):
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
 
         stage_dir('deploy_clone')
         check_call_silent(['git', 'clone', self.stage, '.'])
         check_call_silent(['git', 'fetch', 'origin', 'gh-pages:gh-pages'])
         git_config()
 
-        with pushd(self.stage), \
-             git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file2-origin.txt', 'this is some text'
-            ))
+        with pushd(self.stage), git_utils.Commit('gh-pages', 'add file') as commit:
+            commit.add_file(git_utils.FileInfo('file2-origin.txt', 'this is some text'))
 
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file2.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file2.txt', 'this is some text'))
         clone_rev = git_utils.get_latest_commit('gh-pages')
         check_call_silent(['git', 'fetch', 'origin'])
 
-        assertOutput(self, ['mike', 'deploy', '1.0'], stdout='', stderr=(
-            'error: gh-pages has diverged from origin/gh-pages\n' +
-            "  If you're sure this is intended, retry with " +
-            '--ignore-remote-status\n'
-        ), returncode=1)
+        assertOutput(
+            self,
+            ['mike', 'deploy', '1.0'],
+            stdout='',
+            stderr=(
+                'error: gh-pages has diverged from origin/gh-pages\n'
+                + "  If you're sure this is intended, retry with "
+                + '--ignore-remote-status\n'
+            ),
+            returncode=1,
+        )
         self.assertEqual(git_utils.get_latest_commit('gh-pages'), clone_rev)
 
         assertPopen(['mike', 'deploy', '1.0', '--ignore-remote-status'])
@@ -326,8 +342,7 @@ class TestDeployOtherRemote(DeployTestCase):
         copytree(os.path.join(test_data_dir, 'remote'), self.stage_origin)
         check_call_silent(['git', 'add', 'zensical.toml', 'mkdocs.yml', 'docs'])
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
-        check_call_silent(['git', 'config', 'receive.denyCurrentBranch',
-                           'ignore'])
+        check_call_silent(['git', 'config', 'receive.denyCurrentBranch', 'ignore'])
 
         self.stage = stage_dir('deploy_remote_clone')
         check_call_silent(['git', 'clone', self.stage_origin, '.'])
@@ -372,12 +387,10 @@ class TestDeployNoDirectoryUrls(unittest.TestCase):
         check_call_silent(['git', 'commit', '-m', 'initial commit'])
 
     def test_alias_redirect(self):
-        assertPopen(['mike', 'deploy', '1.0', 'latest',
-                     '--alias-type=redirect'])
+        assertPopen(['mike', 'deploy', '1.0', 'latest', '--alias-type=redirect'])
         check_call_silent(['git', 'checkout', 'gh-pages'])
 
         with open('latest/index.html') as f:
             self.assertRegex(f.read(), match_redir('../1.0/index.html'))
         with open('latest/page.html') as f:
-            self.assertRegex(f.read(),
-                             match_redir('../1.0/page.html'))
+            self.assertRegex(f.read(), match_redir('../1.0/page.html'))

@@ -44,8 +44,7 @@ class TestInjectPlugin(unittest.TestCase):
 class TestBuild(unittest.TestCase):
     def test_build(self):
         with mock.patch('subprocess.run') as mrun:
-            mkdocs_utils.build('zensical.toml', '1.0',
-                               output=subprocess.DEVNULL)
+            mkdocs_utils.build('zensical.toml', '1.0', output=subprocess.DEVNULL)
         mrun.assert_called_once()
         args = mrun.call_args[0][0]
         self.assertEqual(args[:3], ['zensical', 'build', '--clean'])

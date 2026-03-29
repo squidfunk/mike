@@ -44,4 +44,5 @@ jobs:
           uv pip install --system '.[dev]'
       - name: Run lint
         run: |
-          flake8
+          ruff check
+          ruff format --check

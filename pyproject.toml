@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["flake8 >= 3.0", "flake8-quotes", "shtab"]
+dev = ["ruff", "shtab"]
 
 [project.scripts]
 mike = "mike.driver:main"
@@ -45,3 +45,17 @@ expression = "version"
 [tool.hatch.build.targets.wheel]
 packages = ["mike"]
 
+
+[tool.ruff]
+line-length = 88
+extend-exclude = ["build", "dist", "deb_dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "Q"]
+ignore = ["E201", "E202", "F403", "F405"]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.format]
+quote-style = "single"

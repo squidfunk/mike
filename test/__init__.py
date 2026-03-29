@@ -7,9 +7,21 @@ import unittest
 from contextlib import contextmanager
 from itertools import chain
 
-__all__ = ['this_dir', 'test_data_dir', 'test_stage_dir', 'stage_dir', 'pushd',
-           'copytree', 'check_call_silent', 'check_output', 'git_config',
-           'git_init', 'commit_files', 'match_redir', 'assertDirectory']
+__all__ = [
+    'this_dir',
+    'test_data_dir',
+    'test_stage_dir',
+    'stage_dir',
+    'pushd',
+    'copytree',
+    'check_call_silent',
+    'check_output',
+    'git_config',
+    'git_init',
+    'commit_files',
+    'match_redir',
+    'assertDirectory',
+]
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 test_data_dir = os.path.join(this_dir, 'data')
@@ -69,13 +81,15 @@ def copytree(src, dst, ignore_hidden=True):
 
 
 def check_output(args):
-    return subprocess.run(args, check=True, stdout=subprocess.PIPE,
-                          universal_newlines=True).stdout
+    return subprocess.run(
+        args, check=True, stdout=subprocess.PIPE, universal_newlines=True
+    ).stdout
 
 
 def check_call_silent(args):
-    subprocess.run(args, check=True, stdout=subprocess.DEVNULL,
-                   stderr=subprocess.DEVNULL)
+    subprocess.run(
+        args, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
 
 
 def git_config():
@@ -120,12 +134,13 @@ def match_redir(url):
     return r'window\.location\.replace\(\s*"{}"'.format(re.escape(url))
 
 
-def assertDirectory(path, contents, *, include_hidden=False,
-                    allow_extra=False):
+def assertDirectory(path, contents, *, include_hidden=False, allow_extra=False):
     path = os.path.normpath(path)
-    actual = set(os.path.normpath(os.path.join(base, f))
-                 for base, dirs, files in walk(path, include_hidden)
-                 for f in chain(files, dirs))
+    actual = set(
+        os.path.normpath(os.path.join(base, f))
+        for base, dirs, files in walk(path, include_hidden)
+        for f in chain(files, dirs)
+    )
     expected = set(os.path.normpath(os.path.join(path, i)) for i in contents)
     extra = actual - expected
 
@@ -140,6 +155,7 @@ def assertDirectory(path, contents, *, include_hidden=False,
             missing = expected - actual
             extra = actual - expected
             raise unittest.TestCase.failureException(
-                'missing: {}, extra: {}'.format(relpaths(missing, path),
-                                                relpaths(extra, path))
+                'missing: {}, extra: {}'.format(
+                    relpaths(missing, path), relpaths(extra, path)
+                )
             )

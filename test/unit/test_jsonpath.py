@@ -35,13 +35,13 @@ class TestParse(unittest.TestCase):
         self.assertEqual(jsonpath.parse('foo.bar'), ['foo', 'bar'])
         self.assertEqual(jsonpath.parse('foo[1].bar'), ['foo', 1, 'bar'])
         self.assertEqual(jsonpath.parse('"foo.bar".baz'), ['foo.bar', 'baz'])
-        self.assertEqual(jsonpath.parse('foo."bar"[0]["baz"]'),
-                         ['foo', 'bar', 0, 'baz'])
+        self.assertEqual(
+            jsonpath.parse('foo."bar"[0]["baz"]'), ['foo', 'bar', 0, 'baz']
+        )
 
     def test_whitespace(self):
         self.assertEqual(jsonpath.parse(' '), [])
-        self.assertEqual(jsonpath.parse(' foo [ 1 ] . bar '),
-                         ['foo', 1, 'bar'])
+        self.assertEqual(jsonpath.parse(' foo [ 1 ] . bar '), ['foo', 1, 'bar'])
 
 
 class TestParseSet(unittest.TestCase):
@@ -57,28 +57,26 @@ class TestParseSet(unittest.TestCase):
     def test_index(self):
         self.assertEqual(jsonpath.parse_set('[0]=val'), ([0], 'val'))
         self.assertEqual(jsonpath.parse_set('[-1]=val'), ([-1], 'val'))
-        self.assertEqual(jsonpath.parse_set('[head]=val'),
-                         ([jsonpath.head], 'val'))
-        self.assertEqual(jsonpath.parse_set('[tail]=val'),
-                         ([jsonpath.tail], 'val'))
+        self.assertEqual(jsonpath.parse_set('[head]=val'), ([jsonpath.head], 'val'))
+        self.assertEqual(jsonpath.parse_set('[tail]=val'), ([jsonpath.tail], 'val'))
 
     def test_field_index(self):
-        self.assertEqual(jsonpath.parse_set('["fi=ld"]=val'),
-                         (['fi=ld'], 'val'))
-        self.assertEqual(jsonpath.parse_set("['fi=ld']=val"),
-                         (['fi=ld'], 'val'))
+        self.assertEqual(jsonpath.parse_set('["fi=ld"]=val'), (['fi=ld'], 'val'))
+        self.assertEqual(jsonpath.parse_set("['fi=ld']=val"), (['fi=ld'], 'val'))
 
     def test_steps(self):
-        self.assertEqual(jsonpath.parse_set('foo.bar=val'),
-                         (['foo', 'bar'], 'val'))
-        self.assertEqual(jsonpath.parse_set('foo[1].bar=val'),
-                         (['foo', 1, 'bar'], 'val'))
-        self.assertEqual(jsonpath.parse_set('"foo.bar".baz=val'),
-                         (['foo.bar', 'baz'], 'val'))
+        self.assertEqual(jsonpath.parse_set('foo.bar=val'), (['foo', 'bar'], 'val'))
+        self.assertEqual(
+            jsonpath.parse_set('foo[1].bar=val'), (['foo', 1, 'bar'], 'val')
+        )
+        self.assertEqual(
+            jsonpath.parse_set('"foo.bar".baz=val'), (['foo.bar', 'baz'], 'val')
+        )
 
     def test_whitespace(self):
-        self.assertEqual(jsonpath.parse_set(' foo [ 1 ] . bar = val '),
-                         (['foo', 1, 'bar'], 'val '))
+        self.assertEqual(
+            jsonpath.parse_set(' foo [ 1 ] . bar = val '), (['foo', 1, 'bar'], 'val ')
+        )
 
 
 class TestGetValue(unittest.TestCase):
@@ -94,8 +92,7 @@ class TestGetValue(unittest.TestCase):
 
     def test_missing(self):
         self.assertEqual(jsonpath.get_value(['a', 'b', 'c'], '[3]'), None)
-        self.assertEqual(jsonpath.get_value({'a': 2, 'b': 4, 'c': 6}, 'd'),
-                         None)
+        self.assertEqual(jsonpath.get_value({'a': 2, 'b': 4, 'c': 6}, 'd'), None)
 
     def test_missing_strict(self):
         with self.assertRaises(IndexError):
@@ -105,8 +102,7 @@ class TestGetValue(unittest.TestCase):
 
     def test_nested(self):
         data = {'zoo': {'goat': ['billy'], 'redpanda': ['adira', 'pavitra']}}
-        self.assertEqual(jsonpath.get_value(data, 'zoo.redpanda[1]'),
-                         'pavitra')
+        self.assertEqual(jsonpath.get_value(data, 'zoo.redpanda[1]'), 'pavitra')
         expr = jsonpath.parse('zoo.goat[0]')
         self.assertEqual(jsonpath.get_value(data, expr), 'billy')
 
@@ -130,27 +126,37 @@ class TestSetValue(unittest.TestCase):
         self.assertEqual(jsonpath.set_value(True, '', 42), 42)
 
     def test_list(self):
-        self.assertEqual(jsonpath.set_value(['a', 'b', 'c'], '[1]', 'd'),
-                         ['a', 'd', 'c'])
-        self.assertEqual(jsonpath.set_value(['a', 'b', 'c'], '[-1]', 'd'),
-                         ['a', 'b', 'd'])
-        self.assertEqual(jsonpath.set_value(['a', 'b', 'c'], '[head]', 'z'),
-                         ['z', 'a', 'b', 'c'])
-        self.assertEqual(jsonpath.set_value(['a', 'b', 'c'], '[tail]', 'd'),
-                         ['a', 'b', 'c', 'd'])
+        self.assertEqual(
+            jsonpath.set_value(['a', 'b', 'c'], '[1]', 'd'), ['a', 'd', 'c']
+        )
+        self.assertEqual(
+            jsonpath.set_value(['a', 'b', 'c'], '[-1]', 'd'), ['a', 'b', 'd']
+        )
+        self.assertEqual(
+            jsonpath.set_value(['a', 'b', 'c'], '[head]', 'z'), ['z', 'a', 'b', 'c']
+        )
+        self.assertEqual(
+            jsonpath.set_value(['a', 'b', 'c'], '[tail]', 'd'), ['a', 'b', 'c', 'd']
+        )
 
     def test_dict(self):
-        self.assertEqual(jsonpath.set_value({'a': 2, 'b': 4, 'c': 6}, 'b', 40),
-                         {'a': 2, 'b': 40, 'c': 6})
-        self.assertEqual(jsonpath.set_value({'a': 2, 'b': 4, 'c': 6}, 'd', 8),
-                         {'a': 2, 'b': 4, 'c': 6, 'd': 8})
+        self.assertEqual(
+            jsonpath.set_value({'a': 2, 'b': 4, 'c': 6}, 'b', 40),
+            {'a': 2, 'b': 40, 'c': 6},
+        )
+        self.assertEqual(
+            jsonpath.set_value({'a': 2, 'b': 4, 'c': 6}, 'd', 8),
+            {'a': 2, 'b': 4, 'c': 6, 'd': 8},
+        )
 
     def test_collapse(self):
         self.assertEqual(jsonpath.set_value(['a', 'b', 'c'], '', 42), 42)
 
     def test_none(self):
-        self.assertEqual(jsonpath.set_value(None, 'foo.bar[0][1].baz', 42),
-                         {'foo': {'bar': [[None, {'baz': 42}]]}})
+        self.assertEqual(
+            jsonpath.set_value(None, 'foo.bar[0][1].baz', 42),
+            {'foo': {'bar': [[None, {'baz': 42}]]}},
+        )
 
     def test_incompatible(self):
         with self.assertRaises(TypeError):
@@ -180,18 +186,17 @@ class TestDeleteValue(unittest.TestCase):
         self.assertEqual(self.call(['a', 'b', 'c'], '[-1]'), ['a', 'b'])
 
     def test_dict(self):
-        self.assertEqual(self.call({'a': 2, 'b': 4, 'c': 6}, 'b'),
-                         {'a': 2, 'c': 6})
+        self.assertEqual(self.call({'a': 2, 'b': 4, 'c': 6}, 'b'), {'a': 2, 'c': 6})
 
     def test_nested(self):
         data = {'zoo': {'goat': ['billy'], 'redpanda': ['adira', 'pavitra']}}
         self.assertEqual(
             self.call(deepcopy(data), 'zoo.redpanda[1]'),
-            {'zoo': {'goat': ['billy'], 'redpanda': ['adira']}}
+            {'zoo': {'goat': ['billy'], 'redpanda': ['adira']}},
         )
         self.assertEqual(
             self.call(deepcopy(data), 'zoo.goat'),
-            {'zoo': {'redpanda': ['adira', 'pavitra']}}
+            {'zoo': {'redpanda': ['adira', 'pavitra']}},
         )
         self.assertEqual(self.call(deepcopy(data), 'zoo'), {})
         self.assertEqual(self.call(deepcopy(data), ''), None)
@@ -199,16 +204,15 @@ class TestDeleteValue(unittest.TestCase):
         expr = jsonpath.parse('zoo.goat[0]')
         self.assertEqual(
             self.call(deepcopy(data), expr),
-            {'zoo': {'goat': [], 'redpanda': ['adira', 'pavitra']}}
+            {'zoo': {'goat': [], 'redpanda': ['adira', 'pavitra']}},
         )
 
     def test_missing(self):
-        self.assertEqual(self.call(['a', 'b', 'c'], '[3]'),
-                         ['a', 'b', 'c'])
-        self.assertEqual(self.call({'a': 2, 'b': 4, 'c': 6}, 'd'),
-                         {'a': 2, 'b': 4, 'c': 6})
-        self.assertEqual(self.call(['a', 'b', 'c'], '[3].foo'),
-                         ['a', 'b', 'c'])
+        self.assertEqual(self.call(['a', 'b', 'c'], '[3]'), ['a', 'b', 'c'])
+        self.assertEqual(
+            self.call({'a': 2, 'b': 4, 'c': 6}, 'd'), {'a': 2, 'b': 4, 'c': 6}
+        )
+        self.assertEqual(self.call(['a', 'b', 'c'], '[3].foo'), ['a', 'b', 'c'])
 
     def test_missing_strict(self):
         with self.assertRaises(IndexError):

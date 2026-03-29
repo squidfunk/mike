@@ -9,8 +9,7 @@ from mike import driver
 
 class TestLoadMkdocsConfig(unittest.TestCase):
     def make_args(self, **kwargs):
-        default = {'config_file': '/path/to/mkdocs.yml', 'branch': None,
-                   'remote': None}
+        default = {'config_file': '/path/to/mkdocs.yml', 'branch': None, 'remote': None}
         default.update(kwargs)
         return Namespace(**default)
 
@@ -22,15 +21,20 @@ class TestLoadMkdocsConfig(unittest.TestCase):
         self.assertFalse(hasattr(args, 'template'))
         self.assertFalse(hasattr(args, 'deploy_prefix'))
 
-        args = self.make_args(config_file=path, alias_type=None, template=None,
-                              deploy_prefix=None)
+        args = self.make_args(
+            config_file=path, alias_type=None, template=None, deploy_prefix=None
+        )
         self.assertIsNotNone(driver.load_mkdocs_config(args))
         self.assertEqual(args.alias_type, 'symlink')
         self.assertEqual(args.template, None)
         self.assertEqual(args.deploy_prefix, '')
 
-        args = self.make_args(config_file=path, alias_type='copy',
-                              template='file.html', deploy_prefix='prefix')
+        args = self.make_args(
+            config_file=path,
+            alias_type='copy',
+            template='file.html',
+            deploy_prefix='prefix',
+        )
         self.assertIsNotNone(driver.load_mkdocs_config(args))
         self.assertEqual(args.alias_type, 'copy')
         self.assertEqual(args.template, 'file.html')
@@ -44,18 +48,26 @@ class TestLoadMkdocsConfig(unittest.TestCase):
             self.assertFalse(hasattr(args, 'template'))
             self.assertFalse(hasattr(args, 'deploy_prefix'))
 
-        args = self.make_args(branch='gh-pages', remote='origin',
-                              alias_type=None, template=None,
-                              deploy_prefix=None)
+        args = self.make_args(
+            branch='gh-pages',
+            remote='origin',
+            alias_type=None,
+            template=None,
+            deploy_prefix=None,
+        )
         with mock.patch('builtins.open', side_effect=FileNotFoundError):
             self.assertIs(driver.load_mkdocs_config(args), None)
             self.assertEqual(args.alias_type, 'symlink')
             self.assertEqual(args.template, None)
             self.assertEqual(args.deploy_prefix, '')
 
-        args = self.make_args(branch='gh-pages', remote='origin',
-                              alias_type='copy', template='file.html',
-                              deploy_prefix='prefix')
+        args = self.make_args(
+            branch='gh-pages',
+            remote='origin',
+            alias_type='copy',
+            template='file.html',
+            deploy_prefix='prefix',
+        )
         with mock.patch('builtins.open', side_effect=FileNotFoundError):
             self.assertIs(driver.load_mkdocs_config(args), None)
             self.assertEqual(args.alias_type, 'copy')

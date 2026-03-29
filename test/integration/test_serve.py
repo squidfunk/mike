@@ -27,8 +27,10 @@ class TestServe(unittest.TestCase):
         env['PYTHONUNBUFFERED'] = '1'
         proc = subprocess.Popen(
             ['mike', 'serve', '--dev-addr=localhost:8888'] + options,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            universal_newlines=True, env=env
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            env=env,
         )
 
         # Read the first two lines
@@ -37,9 +39,10 @@ class TestServe(unittest.TestCase):
         proc.send_signal(signal.SIGINT)
         stdout_end, stderr = proc.communicate()
 
-        self.assertEqual(stdout_start,
-                         'Starting server at http://localhost:8888/\n' +
-                         'Press Ctrl+C to quit.\n')
+        self.assertEqual(
+            stdout_start,
+            'Starting server at http://localhost:8888/\n' + 'Press Ctrl+C to quit.\n',
+        )
         self.assertEqual(stdout_end, 'Stopping server...\n')
         self.assertEqual(stderr, err_output)
 
@@ -71,9 +74,7 @@ class TestServe(unittest.TestCase):
         git_config()
 
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
         clone_rev = git_utils.get_latest_commit('gh-pages')
 
         self._check_serve()
@@ -88,9 +89,7 @@ class TestServe(unittest.TestCase):
 
         with pushd(self.stage):
             with git_utils.Commit('gh-pages', 'add file') as commit:
-                commit.add_file(git_utils.FileInfo(
-                    'file.txt', 'this is some text'
-                ))
+                commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
             origin_rev = git_utils.get_latest_commit('gh-pages')
         check_call_silent(['git', 'fetch', 'origin'])
 
@@ -103,22 +102,17 @@ class TestServe(unittest.TestCase):
         check_call_silent(['git', 'fetch', 'origin', 'gh-pages:gh-pages'])
         git_config()
 
-        with pushd(self.stage), \
-             git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file-origin.txt', 'this is some text'
-            ))
+        with pushd(self.stage), git_utils.Commit('gh-pages', 'add file') as commit:
+            commit.add_file(git_utils.FileInfo('file-origin.txt', 'this is some text'))
 
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
         clone_rev = git_utils.get_latest_commit('gh-pages')
         check_call_silent(['git', 'fetch', 'origin'])
 
-        self._check_serve(err_output=(
-            'warning: gh-pages has diverged from origin/gh-pages\n'
-        ))
+        self._check_serve(
+            err_output=('warning: gh-pages has diverged from origin/gh-pages\n')
+        )
         self.assertEqual(git_utils.get_latest_commit('gh-pages'), clone_rev)
 
         self._check_serve(['--ignore-remote-status'])

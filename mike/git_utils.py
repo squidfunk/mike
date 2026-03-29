@@ -89,8 +89,9 @@ def count_reachable(rev):
     p = sp.run(cmd, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True)
     if p.returncode == 0:
         return int(p.stdout.strip())
-    raise GitError('unable to get number of reachable commits from {}'
-                   .format(rev), p.stderr)
+    raise GitError(
+        'unable to get number of reachable commits from {}'.format(rev), p.stderr
+    )
 
 
 def get_ref(branch, *, nonexist_ok=False):
@@ -159,16 +160,16 @@ def push_branch(remote, branch):
     cmd = ['git', 'push', '--', remote, branch]
     p = sp.run(cmd, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True)
     if p.returncode != 0:
-        raise GitError('failed to push branch {} to {}'.format(branch, remote),
-                       p.stderr)
+        raise GitError(
+            'failed to push branch {} to {}'.format(branch, remote), p.stderr
+        )
 
 
 def delete_branch(branch):
     cmd = ['git', 'branch', '--delete', '--force', '--', branch]
     p = sp.run(cmd, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True)
     if p.returncode != 0:
-        raise GitError('unable to delete branch {}'.format(branch),
-                       p.stderr)
+        raise GitError('unable to delete branch {}'.format(branch), p.stderr)
 
 
 def is_commit_empty(rev):
@@ -195,8 +196,7 @@ class FileInfo:
         self.mode = mode
 
     def __eq__(self, rhs):
-        return (self.path == rhs.path and self.data == rhs.data and
-                self.mode == rhs.mode)
+        return self.path == rhs.path and self.data == rhs.data and self.mode == rhs.mode
 
     def __repr__(self):
         return '<FileInfo({!r}, {:06o})>'.format(self.path, self.mode)
@@ -204,16 +204,17 @@ class FileInfo:
     def copy(self, destdir='', start=''):
         return FileInfo(
             os.path.join(destdir, os.path.relpath(self.path, start)),
-            self.data, self.mode
+            self.data,
+            self.mode,
         )
 
 
 class Commit:
     def __init__(self, branch, message, *, allow_empty=False):
-        cmd = ['git', 'fast-import', '--date-format=rfc2822', '--quiet',
-               '--done']
-        self._pipe = sp.Popen(cmd, stdin=sp.PIPE, stderr=sp.PIPE,
-                              universal_newlines=False)
+        cmd = ['git', 'fast-import', '--date-format=rfc2822', '--quiet', '--done']
+        self._pipe = sp.Popen(
+            cmd, stdin=sp.PIPE, stderr=sp.PIPE, universal_newlines=False
+        )
         self._finished = False
         self._allow_empty = allow_empty
 
@@ -270,20 +271,20 @@ class Commit:
         self._branch = branch
         encoding = get_commit_encoding()
 
-        name = (os.getenv('GIT_COMMITTER_NAME') or
-                get_config('user.name', encoding))
+        name = os.getenv('GIT_COMMITTER_NAME') or get_config('user.name', encoding)
         name = re.sub(r'[<>\n]', '', name)
 
-        email = (os.getenv('GIT_COMMITTER_EMAIL') or
-                 get_config('user.email', encoding))
+        email = os.getenv('GIT_COMMITTER_EMAIL') or get_config('user.email', encoding)
         email = re.sub(r'[<>\n]', '', email)
 
         when = os.getenv('GIT_COMMITTER_DATE') or make_when()
 
         self._write('commit {}\n'.format(get_ref(branch, nonexist_ok=True)))
-        self._write('committer {name}<{email}> {time}\n'.format(
-            name=name + ' ' if name else '', email=email, time=when
-        ))
+        self._write(
+            'committer {name}<{email}> {time}\n'.format(
+                name=name + ' ' if name else '', email=email, time=when
+            )
+        )
         self._write_data(message)
         try:
             head = get_latest_commit(branch)
@@ -299,10 +300,11 @@ class Commit:
                 self._write('D {}\n'.format(self._escape_path(git_path(f))))
 
     def add_file(self, file_info):
-        self._write('M {mode:06o} inline {path}\n'.format(
-            path=self._escape_path(git_path(file_info.path)),
-            mode=file_info.mode
-        ))
+        self._write(
+            'M {mode:06o} inline {path}\n'.format(
+                path=self._escape_path(git_path(file_info.path)), mode=file_info.mode
+            )
+        )
         self._write_data(file_info.data)
 
     def finish(self):
@@ -316,8 +318,7 @@ class Commit:
         if self._pipe.wait() != 0:
             raise GitCommitError(self._stderr.decode('utf-8'))
 
-        if ( not self._allow_empty
-             and is_commit_empty(get_latest_commit(self._branch)) ):
+        if not self._allow_empty and is_commit_empty(get_latest_commit(self._branch)):
             delete_latest_commit(self._branch)
             raise GitEmptyCommit()
 
@@ -343,9 +344,9 @@ def real_path(branch, filename):
         curr_path = path + i
         mode = file_mode(branch, curr_path, follow_symlinks=False)
         if mode == 0o120000:
-            curr_path = path + read_file(branch, curr_path,
-                                         universal_newlines=True,
-                                         follow_symlinks=False)
+            curr_path = path + read_file(
+                branch, curr_path, universal_newlines=True, follow_symlinks=False
+            )
         path = curr_path
     return path
 
@@ -369,28 +370,34 @@ def file_mode(branch, filename, follow_symlinks=True):
     return int(p.stdout.split(' ', 1)[0], 8)
 
 
-def read_file(branch, filename, universal_newlines=False,
-              follow_symlinks=True):
+def read_file(branch, filename, universal_newlines=False, follow_symlinks=True):
     if follow_symlinks:
         filename = real_path(branch, filename)
 
-    cmd = ['git', 'show', '{branch}:{filename}'.format(
-        branch=branch, filename=git_path(filename)
-    )]
-    p = sp.run(cmd, stdout=sp.PIPE, stderr=sp.PIPE,
-               universal_newlines=universal_newlines)
+    cmd = [
+        'git',
+        'show',
+        '{branch}:{filename}'.format(branch=branch, filename=git_path(filename)),
+    ]
+    p = sp.run(
+        cmd, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=universal_newlines
+    )
     if p.returncode != 0:
-        raise GitError('unable to read file {!r}'.format(filename),
-                       str(p.stderr))
+        raise GitError('unable to read file {!r}'.format(filename), str(p.stderr))
     return p.stdout
 
 
 def walk_files(branch, path=''):
     gpath = git_path(path) if path else ''
-    cmd = ['git', 'ls-tree', '--full-tree', '-r', '--',
-           '{branch}:{path}'.format(branch=branch, path=gpath)]
-    p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.DEVNULL,
-                 universal_newlines=True)
+    cmd = [
+        'git',
+        'ls-tree',
+        '--full-tree',
+        '-r',
+        '--',
+        '{branch}:{path}'.format(branch=branch, path=gpath),
+    ]
+    p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.DEVNULL, universal_newlines=True)
 
     for line in p.stdout:
         strmode, _, _, filename = re.split(r'\s', line.rstrip(), 3)
@@ -403,8 +410,11 @@ def walk_files(branch, path=''):
         # It'd be nice if we could read from stderr, but it's somewhat
         # complex to do that while avoiding deadlocks. (select(2) does this
         # on POSIX systems, but that doesn't work on Windows.)
-        raise GitError("unable to read files in '{branch}:{path}'"
-                       .format(branch=branch, path=gpath))
+        raise GitError(
+            "unable to read files in '{branch}:{path}'".format(
+                branch=branch, path=gpath
+            )
+        )
 
 
 def walk_real_files(srcdir):

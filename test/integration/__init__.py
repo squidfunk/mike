@@ -21,16 +21,16 @@ class SubprocessError(unittest.TestCase.failureException):
         else:
             output = stdout
 
-        super().__init__('\n{line}\n{output}\n{line}'.format(
-            line=line, output=output
-        ))
+        super().__init__('\n{line}\n{output}\n{line}'.format(line=line, output=output))
 
 
 def assertPopen(command, returncode=0, stderr=False):
     proc = subprocess.run(
-        command, stdout=subprocess.PIPE,
+        command,
+        stdout=subprocess.PIPE,
         stderr=subprocess.PIPE if stderr else subprocess.STDOUT,
-        universal_newlines=True, env=_subprocess_env
+        universal_newlines=True,
+        env=_subprocess_env,
     )
     if proc.returncode != returncode:
         raise SubprocessError(proc.stdout, proc.stderr)

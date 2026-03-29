@@ -7,10 +7,9 @@ from . import assertPopen, assertOutput
 from .. import *
 from mike import git_utils, versions
 
-_default_output = ('4.0 [dev, latest]\n' +
-                   '"3.0.3" (3.0) [stable]\n' +
-                   '"2.0.2" (2.0)\n' +
-                   '1.0\n')
+_default_output = (
+    '4.0 [dev, latest]\n' + '"3.0.3" (3.0) [stable]\n' + '"2.0.2" (2.0)\n' + '1.0\n'
+)
 
 
 class ListTestCase(unittest.TestCase):
@@ -28,18 +27,24 @@ class ListTestCase(unittest.TestCase):
         all_versions.add('4.0', aliases=['latest', 'dev'])
 
         with git_utils.Commit('gh-pages', 'commit message') as commit:
-            commit.add_file(git_utils.FileInfo(
-                os.path.join(self.deploy_prefix, 'versions.json'),
-                all_versions.dumps()
-            ))
+            commit.add_file(
+                git_utils.FileInfo(
+                    os.path.join(self.deploy_prefix, 'versions.json'),
+                    all_versions.dumps(),
+                )
+            )
 
-    def _check_list(self, options=[], stdout=_default_output, stderr='',
-                    returncode=0):
-        extra_args = (['--deploy-prefix', self.deploy_prefix]
-                      if self.deploy_prefix else [])
-        return assertOutput(self, ['mike', 'list'] + options + extra_args,
-                            stdout=stdout, stderr=stderr,
-                            returncode=returncode)
+    def _check_list(self, options=[], stdout=_default_output, stderr='', returncode=0):
+        extra_args = (
+            ['--deploy-prefix', self.deploy_prefix] if self.deploy_prefix else []
+        )
+        return assertOutput(
+            self,
+            ['mike', 'list'] + options + extra_args,
+            stdout=stdout,
+            stderr=stderr,
+            returncode=returncode,
+        )
 
 
 class TestList(ListTestCase):
@@ -52,25 +57,30 @@ class TestList(ListTestCase):
         self._check_list(['1.0'], '1.0\n')
         self._check_list(['4.0'], '4.0 [dev, latest]\n')
         self._check_list(['stable'], '"3.0.3" (3.0) [stable]\n')
-        self._check_list(['nonexist'], '',
-                         "error: identifier 'nonexist' does not exist\n", 1)
+        self._check_list(
+            ['nonexist'], '', "error: identifier 'nonexist' does not exist\n", 1
+        )
 
     def test_list_json(self):
         stdout = self._check_list(['-j'], stdout=mock.ANY)[0]
         data = json.loads(stdout)
         data[0]['aliases'].sort()
-        self.assertEqual(data, [
-            {'version': '4.0', 'title': '4.0', 'aliases': ['dev', 'latest']},
-            {'version': '3.0', 'title': '3.0.3', 'aliases': ['stable']},
-            {'version': '2.0', 'title': '2.0.2', 'aliases': []},
-            {'version': '1.0', 'title': '1.0', 'aliases': []}
-        ])
+        self.assertEqual(
+            data,
+            [
+                {'version': '4.0', 'title': '4.0', 'aliases': ['dev', 'latest']},
+                {'version': '3.0', 'title': '3.0.3', 'aliases': ['stable']},
+                {'version': '2.0', 'title': '2.0.2', 'aliases': []},
+                {'version': '1.0', 'title': '1.0', 'aliases': []},
+            ],
+        )
 
     def test_list_version_json(self):
         stdout = self._check_list(['-j', 'stable'], stdout=mock.ANY)[0]
-        self.assertEqual(json.loads(stdout), {
-            'version': '3.0', 'title': '3.0.3', 'aliases': ['stable']
-        })
+        self.assertEqual(
+            json.loads(stdout),
+            {'version': '3.0', 'title': '3.0.3', 'aliases': ['stable']},
+        )
 
     def test_from_subdir(self):
         os.mkdir('sub')
@@ -82,12 +92,13 @@ class TestList(ListTestCase):
             self._check_list(['4.0'] + opts, '4.0 [dev, latest]\n')
             self._check_list(['stable'] + opts, '"3.0.3" (3.0) [stable]\n')
             self._check_list(
-                ['nonexist'] + opts, '',
-                "error: identifier 'nonexist' does not exist\n", 1
+                ['nonexist'] + opts,
+                '',
+                "error: identifier 'nonexist' does not exist\n",
+                1,
             )
 
-            self._check_list(['1.0', '-b', 'gh-pages', '-r', 'origin'],
-                             '1.0\n')
+            self._check_list(['1.0', '-b', 'gh-pages', '-r', 'origin'], '1.0\n')
 
     def test_local_empty(self):
         origin_rev = git_utils.get_latest_commit('gh-pages')
@@ -108,9 +119,7 @@ class TestList(ListTestCase):
         git_config()
 
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
         clone_rev = git_utils.get_latest_commit('gh-pages')
 
         self._check_list()
@@ -125,9 +134,7 @@ class TestList(ListTestCase):
 
         with pushd(self.stage):
             with git_utils.Commit('gh-pages', 'add file') as commit:
-                commit.add_file(git_utils.FileInfo(
-                    'file.txt', 'this is some text'
-                ))
+                commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
             origin_rev = git_utils.get_latest_commit('gh-pages')
         check_call_silent(['git', 'fetch', 'origin'])
 
@@ -140,22 +147,17 @@ class TestList(ListTestCase):
         check_call_silent(['git', 'fetch', 'origin', 'gh-pages:gh-pages'])
         git_config()
 
-        with pushd(self.stage), \
-             git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file-origin.txt', 'this is some text'
-            ))
+        with pushd(self.stage), git_utils.Commit('gh-pages', 'add file') as commit:
+            commit.add_file(git_utils.FileInfo('file-origin.txt', 'this is some text'))
 
         with git_utils.Commit('gh-pages', 'add file') as commit:
-            commit.add_file(git_utils.FileInfo(
-                'file.txt', 'this is some text'
-            ))
+            commit.add_file(git_utils.FileInfo('file.txt', 'this is some text'))
         clone_rev = git_utils.get_latest_commit('gh-pages')
         check_call_silent(['git', 'fetch', 'origin'])
 
-        self._check_list(stderr=(
-            'warning: gh-pages has diverged from origin/gh-pages\n'
-        ))
+        self._check_list(
+            stderr=('warning: gh-pages has diverged from origin/gh-pages\n')
+        )
         self.assertEqual(git_utils.get_latest_commit('gh-pages'), clone_rev)
 
         self._check_list(['--ignore-remote-status'])
@@ -172,5 +174,6 @@ class TestListDeployPrefix(ListTestCase):
         self._check_list(['1.0'], '1.0\n')
         self._check_list(['4.0'], '4.0 [dev, latest]\n')
         self._check_list(['stable'], '"3.0.3" (3.0) [stable]\n')
-        self._check_list(['nonexist'], '',
-                         "error: identifier 'nonexist' does not exist\n", 1)
+        self._check_list(
+            ['nonexist'], '', "error: identifier 'nonexist' does not exist\n", 1
+        )
