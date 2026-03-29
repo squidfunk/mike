@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools >= 61"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "mike"
+dynamic = ["version"]
+description = "Manage multiple versions of your MkDocs-powered documentation"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE"}
+keywords = ["mkdocs", "multiple versions"]
+authors = [{name = "Jim Porter", email = "itsjimporter@gmail.com"}]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Documentation",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "jinja2 >= 2.7",
+    "pyparsing >= 3.0",
+    "verspec",
+    "zensical >= 0.0.30",
+]
+
+[project.optional-dependencies]
+dev = ["coverage", "flake8 >= 3.0", "flake8-quotes", "shtab"]
+
+[project.scripts]
+mike = "mike.driver:main"
+
+[project.urls]
+Homepage = "https://github.com/jimporter/mike"
+
+[tool.setuptools.dynamic]
+version = {attr = "mike.app_version.version"}
+
+[tool.setuptools.packages.find]
+exclude = ["test", "test.*"]
+
+[tool.setuptools.package-data]
+"mike" = ["templates/*.html", "themes/**/*.js", "themes/**/*.css"]
+
+[tool.coverage.run]
+source = ["mike"]
+parallel = true
+branch = true
+
+[tool.coverage.paths]
+source = [
+    "mike/",
+    "/usr/local/lib/*/site-packages/mike/",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "return NotImplemented",
+    "def __repr__",
+]
