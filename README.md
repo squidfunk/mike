@@ -1,6 +1,7 @@
 # mike (for Zensical)
 
 [![Build Status](https://github.com/squidfunk/mike/actions/workflows/build.yml/badge.svg)](https://github.com/squidfunk/mike/actions/workflows/build.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/squidfunk/mike)](https://github.com/squidfunk/mike/releases)
 
 > [!NOTE]
 >
@@ -19,9 +20,8 @@ documentation anywhere, not only on GitHub Pages, and allow for more degrees
 of freedom in how versions are deployed and served. All `mike` commands stay
 the same. Limitations:
 
-1. No theme support besides Zensical's default theme.
-2. Installation must happen from GitHub – this fork won't be published on PyPI.
-3. This fork is based on mike 2.2.0 - we only intend to provide bug fixes.
+1. Installation must happen from GitHub – this fork won't be published on PyPI.
+2. This fork is based on mike 2.2.0 - we provide bug fixes, but no new features.
 
 ## Installation
 
