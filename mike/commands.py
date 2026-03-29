@@ -1,7 +1,6 @@
 import http.server
 import os
 import posixpath
-import sys
 from contextlib import contextmanager
 from enum import Enum
 from jinja2 import Template
@@ -12,10 +11,7 @@ from . import server
 from .app_version import version as app_version
 from .versions import Versions
 
-if sys.version_info < (3, 10):
-    import importlib_resources as resources
-else:
-    from importlib import resources
+from importlib import resources
 
 versions_file = 'versions.json'
 AliasType = Enum('AliasType', ['symlink', 'copy', 'redirect'])
