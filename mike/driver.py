@@ -179,9 +179,11 @@ def load_config(args, strict=False):
         if getattr(args, field, object()) is None:
             setattr(args, field, cfg[cfg_field or field])
 
+    plugin = get_default_config()
     try:
         cfg = utils.load_config(args.config_file)
-        plugin = cfg['plugins'].get('mike') or get_default_config()
+        plugin_from_cfg = cfg['plugins'].get('mike', {})
+        plugin['config'].update(plugin_from_cfg.get('config', {}))
         maybe_set(args, cfg, 'branch', 'remote_branch')
         maybe_set(args, cfg, 'remote', 'remote_name')
         maybe_set(args, plugin['config'], 'alias_type')
@@ -192,7 +194,6 @@ def load_config(args, strict=False):
         if strict:
             raise
 
-        plugin = get_default_config()
         maybe_set(args, plugin['config'], 'alias_type')
         maybe_set(args, plugin['config'], 'template', 'redirect_template')
         maybe_set(args, plugin['config'], 'deploy_prefix')
