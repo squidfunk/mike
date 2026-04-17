@@ -211,6 +211,7 @@ def get_default_config():
             'alias_type': 'symlink',
             'redirect_template': None,
             'deploy_prefix': '',
+            'canonical_version': None,
         }
     }
 
